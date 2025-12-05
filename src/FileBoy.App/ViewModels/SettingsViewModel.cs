@@ -29,8 +29,8 @@ public partial class SettingsViewModel : ObservableObject
         [
             new SettingItem("General", "Window Startup Mode", "Choose how the window appears when the application starts", 
                 SettingType.Enum, nameof(StartupMode), typeof(WindowStartupMode)),
-            new SettingItem("Appearance", "Thumbnail Size", "Size of thumbnails in pixels (50-300)", 
-                SettingType.Slider, nameof(ThumbnailSize), minValue: 50, maxValue: 300),
+            new SettingItem("Appearance", "Thumbnail Size", "Size of thumbnails in pixels (50-600)", 
+                SettingType.Slider, nameof(ThumbnailSize), minValue: 50, maxValue: 600),
         ];
         
         FilteredSettings = new ObservableCollection<SettingItem>(AllSettings);

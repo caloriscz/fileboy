@@ -178,8 +178,9 @@
                 </ListBox.ItemsPanel>
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <StackPanel Width="120" Margin="4">
-                            <Border Width="100" Height="100" 
+                        <StackPanel Width="{Binding DataContext.ThumbnailContainerSize, RelativeSource={RelativeSource AncestorType=ListBox}}" Margin="4">
+                            <Border Width="{Binding DataContext.ThumbnailDisplaySize, RelativeSource={RelativeSource AncestorType=ListBox}}" 
+                                    Height="{Binding DataContext.ThumbnailDisplaySize, RelativeSource={RelativeSource AncestorType=ListBox}}" 
                                     Background="#F5F5F5" 
                                     BorderBrush="#DDD" 
                                     BorderThickness="1"

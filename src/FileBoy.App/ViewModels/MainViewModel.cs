@@ -25,6 +25,8 @@ public partial class MainViewModel : ObservableObject
     private readonly IProcessLauncher _processLauncher;
     private readonly ISettingsService _settingsService;
     private readonly IPageNavigationService _pageNavigationService;
+    private readonly IVideoThumbnailService _videoThumbnailService;
+    private readonly IFFmpegManager _ffmpegManager;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MainViewModel> _logger;
     private CancellationTokenSource? _thumbnailCts;
@@ -35,6 +37,8 @@ public partial class MainViewModel : ObservableObject
         IProcessLauncher processLauncher,
         ISettingsService settingsService,
         IPageNavigationService pageNavigationService,
+        IVideoThumbnailService videoThumbnailService,
+        IFFmpegManager ffmpegManager,
         IServiceProvider serviceProvider,
         ILogger<MainViewModel> logger)
     {
@@ -43,6 +47,8 @@ public partial class MainViewModel : ObservableObject
         _processLauncher = processLauncher;
         _settingsService = settingsService;
         _pageNavigationService = pageNavigationService;
+        _videoThumbnailService = videoThumbnailService;
+        _ffmpegManager = ffmpegManager;
         _serviceProvider = serviceProvider;
         _logger = logger;
 
@@ -94,6 +100,15 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _statusText = "Ready";
 
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ThumbnailContainerSize))]
+    private int _thumbnailDisplaySize = 120;
+
+    /// <summary>
+    /// Container size is slightly larger than thumbnail for padding.
+    /// </summary>
+    public int ThumbnailContainerSize => ThumbnailDisplaySize + 20;
+
     public bool CanGoBack => _navigationHistory.CanGoBack;
     public bool CanGoForward => _navigationHistory.CanGoForward;
 
@@ -101,6 +116,20 @@ public partial class MainViewModel : ObservableObject
     {
         await _settingsService.LoadAsync();
         ViewMode = _settingsService.Settings.DefaultView;
+        ThumbnailDisplaySize = _settingsService.Settings.ThumbnailSize;
+        
+        // Ensure FFmpeg is available (downloads if needed)
+        if (!_ffmpegManager.IsAvailable)
+        {
+            _logger.LogInformation("FFmpeg not found, attempting to download...");
+            StatusText = "Downloading FFmpeg for video thumbnails...";
+            await _ffmpegManager.EnsureAvailableAsync();
+        }
+        
+        if (_ffmpegManager.IsAvailable)
+        {
+            _logger.LogInformation("FFmpeg is available at: {Path}", _ffmpegManager.FFmpegPath);
+        }
         
         var initialPath = _settingsService.Settings.LastPath;
         if (string.IsNullOrEmpty(initialPath) || !_fileSystemService.IsValidDirectory(initialPath))
@@ -272,6 +301,9 @@ public partial class MainViewModel : ObservableObject
         
         if (settingsWindow.ShowDialog() == true)
         {
+            // Update display size binding
+            ThumbnailDisplaySize = _settingsService.Settings.ThumbnailSize;
+            
             // Settings were saved, check if thumbnail size changed
             if (ViewMode == ViewMode.Thumbnail && oldThumbnailSize != _settingsService.Settings.ThumbnailSize)
             {
@@ -305,12 +337,45 @@ public partial class MainViewModel : ObservableObject
                 {
                     await LoadImageThumbnailAsync(item, ct);
                 }
-                // TODO: Video thumbnails via FFmpeg
+                else if (item.ItemType == FileItemType.Video)
+                {
+                    await LoadVideoThumbnailAsync(item, ct);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogDebug(ex, "Failed to load thumbnail for {Path}", item.FullPath);
             }
+        }
+    }
+
+    private async Task LoadVideoThumbnailAsync(FileItemViewModel item, CancellationToken ct)
+    {
+        var thumbnailSize = _settingsService.Settings.ThumbnailSize;
+        
+        var thumbnailData = await _videoThumbnailService.GetThumbnailAsync(item.FullPath, thumbnailSize, ct);
+        
+        if (thumbnailData != null && thumbnailData.Length > 0)
+        {
+            await System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
+            {
+                try
+                {
+                    using var stream = new MemoryStream(thumbnailData);
+                    var bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = stream;
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+                    
+                    item.Thumbnail = bitmap;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Failed to create bitmap from video thumbnail for {Path}", item.FullPath);
+                }
+            });
         }
     }
 
