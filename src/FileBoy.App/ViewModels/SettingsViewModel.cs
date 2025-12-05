@@ -29,6 +29,8 @@ public partial class SettingsViewModel : ObservableObject
         [
             new SettingItem("General", "Window Startup Mode", "Choose how the window appears when the application starts", 
                 SettingType.Enum, nameof(StartupMode), typeof(WindowStartupMode)),
+            new SettingItem("General", "Default View Mode", "Choose whether to start in List or Thumbnail view", 
+                SettingType.Enum, nameof(DefaultViewMode), typeof(ViewMode)),
             new SettingItem("Appearance", "Thumbnail Size", "Size of thumbnails in pixels (50-600)", 
                 SettingType.Slider, nameof(ThumbnailSize), minValue: 50, maxValue: 600),
         ];
@@ -58,9 +60,13 @@ public partial class SettingsViewModel : ObservableObject
     private WindowStartupMode _startupMode;
 
     [ObservableProperty]
+    private ViewMode _defaultViewMode;
+
+    [ObservableProperty]
     private int _thumbnailSize = 120;
 
     public Array StartupModeValues => Enum.GetValues(typeof(WindowStartupMode));
+    public Array DefaultViewModeValues => Enum.GetValues(typeof(ViewMode));
 
     partial void OnSelectedCategoryChanged(SettingsCategory? value)
     {
@@ -100,6 +106,7 @@ public partial class SettingsViewModel : ObservableObject
     {
         var settings = _settingsService.Settings;
         StartupMode = settings.StartupMode;
+        DefaultViewMode = settings.DefaultView;
         ThumbnailSize = settings.ThumbnailSize;
     }
 
@@ -108,6 +115,7 @@ public partial class SettingsViewModel : ObservableObject
     {
         var settings = _settingsService.Settings;
         settings.StartupMode = StartupMode;
+        settings.DefaultView = DefaultViewMode;
         settings.ThumbnailSize = ThumbnailSize;
         await _settingsService.SaveAsync();
     }
@@ -116,6 +124,7 @@ public partial class SettingsViewModel : ObservableObject
     private void ResetToDefaults()
     {
         StartupMode = WindowStartupMode.Normal;
+        DefaultViewMode = ViewMode.List;
         ThumbnailSize = 120;
     }
 }

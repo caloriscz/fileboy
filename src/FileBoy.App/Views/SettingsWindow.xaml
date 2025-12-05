@@ -161,10 +161,15 @@
                                     <!-- Setting Control -->
                                     <ContentControl Grid.Row="2" Content="{Binding}">
                                         <ContentControl.Resources>
-                                            <DataTemplate x:Key="EnumTemplate">
+                                            <DataTemplate x:Key="StartupModeEnumTemplate">
                                                 <ComboBox Width="200" HorizontalAlignment="Left"
                                                           ItemsSource="{Binding DataContext.StartupModeValues, RelativeSource={RelativeSource AncestorType=Window}}"
                                                           SelectedItem="{Binding DataContext.StartupMode, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                            </DataTemplate>
+                                            <DataTemplate x:Key="DefaultViewModeEnumTemplate">
+                                                <ComboBox Width="200" HorizontalAlignment="Left"
+                                                          ItemsSource="{Binding DataContext.DefaultViewModeValues, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                          SelectedItem="{Binding DataContext.DefaultViewMode, RelativeSource={RelativeSource AncestorType=Window}}"/>
                                             </DataTemplate>
                                             <DataTemplate x:Key="SliderTemplate">
                                                 <StackPanel Orientation="Horizontal">
@@ -184,8 +189,11 @@
                                         <ContentControl.Style>
                                             <Style TargetType="ContentControl">
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding Type}" Value="Enum">
-                                                        <Setter Property="ContentTemplate" Value="{StaticResource EnumTemplate}"/>
+                                                    <DataTrigger Binding="{Binding PropertyName}" Value="StartupMode">
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource StartupModeEnumTemplate}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding PropertyName}" Value="DefaultViewMode">
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource DefaultViewModeEnumTemplate}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Type}" Value="Slider">
                                                         <Setter Property="ContentTemplate" Value="{StaticResource SliderTemplate}"/>

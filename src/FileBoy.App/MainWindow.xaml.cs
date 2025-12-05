@@ -4,6 +4,8 @@ using System.Windows.Input;
 using FileBoy.App.Pages;
 using FileBoy.App.Services;
 using FileBoy.App.ViewModels;
+using FileBoy.Core.Enums;
+using FileBoy.Core.Interfaces;
 
 namespace FileBoy.App;
 
@@ -14,13 +16,15 @@ public partial class MainWindow : Window
 {
     private readonly MainViewModel _mainViewModel;
     private readonly PageNavigationService _navigationService;
+    private readonly ISettingsService _settingsService;
 
-    public MainWindow(MainViewModel mainViewModel, IPageNavigationService navigationService)
+    public MainWindow(MainViewModel mainViewModel, IPageNavigationService navigationService, ISettingsService settingsService)
     {
         InitializeComponent();
         
         _mainViewModel = mainViewModel;
         _navigationService = (PageNavigationService)navigationService;
+        _settingsService = settingsService;
         _navigationService.SetFrame(MainFrame);
         
         // Bind menu items to ViewModel commands
@@ -40,8 +44,16 @@ public partial class MainWindow : Window
         var browserPage = new BrowserPage(_mainViewModel);
         MainFrame.Navigate(browserPage);
         
-        // Initialize the view model
+        // Initialize the view model (loads settings)
         await _mainViewModel.InitializeAsync();
+        
+        // Apply window startup mode from settings
+        WindowState = _settingsService.Settings.StartupMode switch
+        {
+            WindowStartupMode.Maximized => WindowState.Maximized,
+            WindowStartupMode.Minimized => WindowState.Minimized,
+            _ => WindowState.Normal
+        };
     }
 
     private void Exit_Click(object sender, RoutedEventArgs e)
