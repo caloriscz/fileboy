@@ -18,17 +18,19 @@
         <!-- Menu Bar -->
         <Menu Grid.Row="0" Background="#f0f0f0" Padding="2">
             <MenuItem Header="_File">
-                <MenuItem Header="_Refresh" Click="Refresh_Click" InputGestureText="F5"/>
+                <MenuItem x:Name="RefreshMenuItem" Header="_Refresh" InputGestureText="F5"/>
                 <Separator/>
                 <MenuItem Header="E_xit" Click="Exit_Click" InputGestureText="Alt+F4"/>
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="_List View" Click="ListView_Click"/>
-                <MenuItem Header="_Thumbnail View" Click="ThumbnailView_Click"/>
+                <MenuItem x:Name="ListViewMenuItem" Header="_List View"/>
+                <MenuItem x:Name="ThumbnailViewMenuItem" Header="_Thumbnail View"/>
             </MenuItem>
-            <MenuItem Header="_Options"/>
+            <MenuItem Header="_Tools">
+                <MenuItem x:Name="SettingsMenuItem" Header="_Settings" InputGestureText="Ctrl+,"/>
+            </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="_About FileBoy"/>
+                <MenuItem Header="_About FileBoy" Click="About_Click"/>
             </MenuItem>
         </Menu>
         

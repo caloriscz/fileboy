@@ -23,6 +23,7 @@
         <KeyBinding Modifiers="Alt" Key="Left" Command="{Binding GoBackCommand}"/>
         <KeyBinding Modifiers="Alt" Key="Right" Command="{Binding GoForwardCommand}"/>
         <KeyBinding Modifiers="Alt" Key="Up" Command="{Binding GoUpCommand}"/>
+        <KeyBinding Modifiers="Ctrl" Key="OemComma" Command="{Binding OpenSettingsCommand}"/>
     </Page.InputBindings>
     
     <Grid>
@@ -67,6 +68,10 @@
                           ToolTip="Thumbnail View" Padding="4,2">
                 <TextBlock Text="⊞" FontSize="14"/>
             </ToggleButton>
+            <Separator/>
+            <Button Command="{Binding OpenSettingsCommand}" ToolTip="Settings (Ctrl+,)" Padding="6,2">
+                <TextBlock Text="⚙" FontSize="14"/>
+            </Button>
         </ToolBar>
         
         <!-- Main Content Area with Preview Panel -->

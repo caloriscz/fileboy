@@ -8,6 +8,11 @@ namespace FileBoy.Core.Models;
 public sealed class AppSettings
 {
     /// <summary>
+    /// Window startup state (Normal, Minimized, Maximized).
+    /// </summary>
+    public WindowStartupMode StartupMode { get; set; } = WindowStartupMode.Normal;
+
+    /// <summary>
     /// Default view mode when opening folders.
     /// </summary>
     public ViewMode DefaultView { get; set; } = ViewMode.List;

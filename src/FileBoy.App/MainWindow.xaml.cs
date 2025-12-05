@@ -23,6 +23,14 @@ public partial class MainWindow : Window
         _navigationService = (PageNavigationService)navigationService;
         _navigationService.SetFrame(MainFrame);
         
+        // Bind menu items to ViewModel commands
+        RefreshMenuItem.Command = _mainViewModel.RefreshCommand;
+        ListViewMenuItem.Command = _mainViewModel.SetViewModeCommand;
+        ListViewMenuItem.CommandParameter = "List";
+        ThumbnailViewMenuItem.Command = _mainViewModel.SetViewModeCommand;
+        ThumbnailViewMenuItem.CommandParameter = "Thumbnail";
+        SettingsMenuItem.Command = _mainViewModel.OpenSettingsCommand;
+        
         Loaded += MainWindow_Loaded;
     }
 
@@ -36,23 +44,17 @@ public partial class MainWindow : Window
         await _mainViewModel.InitializeAsync();
     }
 
-    private void Refresh_Click(object sender, RoutedEventArgs e)
-    {
-        _mainViewModel.RefreshCommand.Execute(null);
-    }
-
-    private void ListView_Click(object sender, RoutedEventArgs e)
-    {
-        _mainViewModel.SetViewModeCommand.Execute("List");
-    }
-
-    private void ThumbnailView_Click(object sender, RoutedEventArgs e)
-    {
-        _mainViewModel.SetViewModeCommand.Execute("Thumbnail");
-    }
-
     private void Exit_Click(object sender, RoutedEventArgs e)
     {
         Application.Current.Shutdown();
+    }
+
+    private void About_Click(object sender, RoutedEventArgs e)
+    {
+        MessageBox.Show(
+            "FileBoy - Media File Manager\n\nVersion 1.0.0\n\nA lightweight file browser with image preview and thumbnail support.",
+            "About FileBoy",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information);
     }
 }

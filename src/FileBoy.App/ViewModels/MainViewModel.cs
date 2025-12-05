@@ -261,6 +261,30 @@ public partial class MainViewModel : ObservableObject
         await NavigateToPathAsync(CurrentPath);
     }
 
+    [RelayCommand]
+    private void OpenSettings()
+    {
+        var settingsViewModel = _serviceProvider.GetRequiredService<SettingsViewModel>();
+        var settingsWindow = new Views.SettingsWindow(settingsViewModel);
+        settingsWindow.Owner = System.Windows.Application.Current.MainWindow;
+        
+        var oldThumbnailSize = _settingsService.Settings.ThumbnailSize;
+        
+        if (settingsWindow.ShowDialog() == true)
+        {
+            // Settings were saved, check if thumbnail size changed
+            if (ViewMode == ViewMode.Thumbnail && oldThumbnailSize != _settingsService.Settings.ThumbnailSize)
+            {
+                // Clear existing thumbnails and reload with new size
+                foreach (var item in Items)
+                {
+                    item.Thumbnail = null;
+                }
+                _ = LoadThumbnailsAsync();
+            }
+        }
+    }
+
     private async Task LoadThumbnailsAsync()
     {
         // Cancel any previous thumbnail loading
@@ -292,6 +316,8 @@ public partial class MainViewModel : ObservableObject
 
     private async Task LoadImageThumbnailAsync(FileItemViewModel item, CancellationToken ct)
     {
+        var thumbnailSize = _settingsService.Settings.ThumbnailSize;
+        
         await Task.Run(() =>
         {
             ct.ThrowIfCancellationRequested();
@@ -299,7 +325,7 @@ public partial class MainViewModel : ObservableObject
             var bitmap = new BitmapImage();
             bitmap.BeginInit();
             bitmap.UriSource = new Uri(item.FullPath);
-            bitmap.DecodePixelWidth = 100; // Thumbnail size
+            bitmap.DecodePixelWidth = thumbnailSize; // Use settings thumbnail size
             bitmap.CacheOption = BitmapCacheOption.OnLoad;
             bitmap.EndInit();
             bitmap.Freeze(); // Required for cross-thread access
