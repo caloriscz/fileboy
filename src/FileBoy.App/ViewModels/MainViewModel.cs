@@ -109,6 +109,16 @@ public partial class MainViewModel : ObservableObject
     /// </summary>
     public int ThumbnailContainerSize => ThumbnailDisplaySize + 20;
 
+    [ObservableProperty]
+    private double _previewPanelWidth = 400;
+
+    partial void OnPreviewPanelWidthChanged(double value)
+    {
+        // Save the width when it changes
+        _settingsService.Settings.PreviewPanelWidth = value;
+        _ = _settingsService.SaveAsync();
+    }
+
     public bool CanGoBack => _navigationHistory.CanGoBack;
     public bool CanGoForward => _navigationHistory.CanGoForward;
 
@@ -117,6 +127,7 @@ public partial class MainViewModel : ObservableObject
         await _settingsService.LoadAsync();
         ViewMode = _settingsService.Settings.DefaultView;
         ThumbnailDisplaySize = _settingsService.Settings.ThumbnailSize;
+        PreviewPanelWidth = _settingsService.Settings.PreviewPanelWidth;
         
         // Ensure FFmpeg is available (downloads if needed)
         if (!_ffmpegManager.IsAvailable)

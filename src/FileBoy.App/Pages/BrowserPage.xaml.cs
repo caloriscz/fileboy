@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using FileBoy.App.ViewModels;
 
@@ -46,5 +47,11 @@ public partial class BrowserPage : Page
         {
             await ViewModel.OpenItemAsync(ViewModel.SelectedItem);
         }
+    }
+
+    private void GridSplitter_DragCompleted(object sender, DragCompletedEventArgs e)
+    {
+        // Save the new preview panel width when user finishes dragging
+        ViewModel.PreviewPanelWidth = PreviewColumn.ActualWidth;
     }
 }

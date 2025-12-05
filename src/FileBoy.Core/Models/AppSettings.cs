@@ -41,4 +41,9 @@ public sealed class AppSettings
     /// Thumbnail size in pixels (square).
     /// </summary>
     public int ThumbnailSize { get; set; } = 120;
+
+    /// <summary>
+    /// Preview panel width in pixels.
+    /// </summary>
+    public double PreviewPanelWidth { get; set; } = 400;
 }
