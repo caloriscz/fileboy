@@ -66,6 +66,23 @@ public partial class MainViewModel : ObservableObject
     partial void OnSelectedItemChanged(FileItemViewModel? value)
     {
         _ = LoadPreviewAsync(value);
+        UpdateStatusForSelectedItem(value);
+    }
+
+    private void UpdateStatusForSelectedItem(FileItemViewModel? item)
+    {
+        if (item == null)
+        {
+            StatusText = $"{Items.Count} items";
+        }
+        else if (item.IsDirectory)
+        {
+            StatusText = $"{Items.Count} items | Selected: {item.Name} (folder)";
+        }
+        else
+        {
+            StatusText = $"{Items.Count} items | Selected: {item.Name} ({item.FormattedSize})";
+        }
     }
 
     [ObservableProperty]
