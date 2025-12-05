@@ -16,6 +16,10 @@ public partial class BrowserPage : Page
     {
         InitializeComponent();
         DataContext = viewModel;
+        
+        // Ensure page can receive keyboard input
+        Focusable = true;
+        Loaded += (s, e) => Focus();
     }
 
     private void PathBox_KeyDown(object sender, KeyEventArgs e)

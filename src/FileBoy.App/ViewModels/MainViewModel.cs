@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -56,6 +57,16 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private FileItemViewModel? _selectedItem;
+
+    [ObservableProperty]
+    private ImageSource? _previewImage;
+
+    private CancellationTokenSource? _previewCts;
+
+    partial void OnSelectedItemChanged(FileItemViewModel? value)
+    {
+        _ = LoadPreviewAsync(value);
+    }
 
     [ObservableProperty]
     private ViewMode _viewMode = ViewMode.List;
@@ -127,6 +138,12 @@ public partial class MainViewModel : ObservableObject
             await _settingsService.SaveAsync();
 
             StatusText = $"{Items.Count} items";
+            
+            // Load thumbnails if in thumbnail view mode
+            if (ViewMode == ViewMode.Thumbnail)
+            {
+                _ = LoadThumbnailsAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -299,6 +316,12 @@ public partial class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(CanGoForward));
 
             StatusText = $"{Items.Count} items";
+            
+            // Load thumbnails if in thumbnail view mode
+            if (ViewMode == ViewMode.Thumbnail)
+            {
+                _ = LoadThumbnailsAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -308,6 +331,54 @@ public partial class MainViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    private async Task LoadPreviewAsync(FileItemViewModel? item)
+    {
+        // Cancel any previous preview loading
+        _previewCts?.Cancel();
+        
+        if (item == null || !item.IsViewableImage)
+        {
+            PreviewImage = null;
+            return;
+        }
+
+        _previewCts = new CancellationTokenSource();
+        var ct = _previewCts.Token;
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                ct.ThrowIfCancellationRequested();
+                
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(item.FullPath);
+                bitmap.DecodePixelWidth = 1200; // Preview size
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.EndInit();
+                bitmap.Freeze();
+                
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                {
+                    if (!ct.IsCancellationRequested)
+                    {
+                        PreviewImage = bitmap;
+                    }
+                });
+            }, ct);
+        }
+        catch (OperationCanceledException)
+        {
+            // Cancelled, ignore
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to load preview for {Path}", item.FullPath);
+            PreviewImage = null;
         }
     }
 }

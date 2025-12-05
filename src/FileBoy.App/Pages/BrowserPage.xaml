@@ -18,7 +18,8 @@
     
     <Page.InputBindings>
         <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
-        <KeyBinding Key="Back" Command="{Binding GoBackCommand}"/>
+        <KeyBinding Key="Back" Command="{Binding GoUpCommand}"/>
+        <KeyBinding Key="Backspace" Command="{Binding GoUpCommand}"/>
         <KeyBinding Modifiers="Alt" Key="Left" Command="{Binding GoBackCommand}"/>
         <KeyBinding Modifiers="Alt" Key="Right" Command="{Binding GoForwardCommand}"/>
         <KeyBinding Modifiers="Alt" Key="Up" Command="{Binding GoUpCommand}"/>
@@ -68,19 +69,55 @@
             </ToggleButton>
         </ToolBar>
         
-        <!-- Main Content Area -->
+        <!-- Main Content Area with Preview Panel -->
         <Grid Grid.Row="1">
-            <!-- Loading Overlay -->
-            <Border Background="#80FFFFFF" 
-                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
-                    Panel.ZIndex="100">
-                <TextBlock Text="Loading..." 
-                           HorizontalAlignment="Center" 
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="400" MinWidth="200" MaxWidth="600"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*" MinWidth="300"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Image Preview Panel -->
+            <Border Grid.Column="0" Background="#1e1e1e" BorderBrush="#333" BorderThickness="0,0,1,0">
+                <Grid>
+                    <!-- Preview when image is selected -->
+                    <Image Source="{Binding PreviewImage}" 
+                           Stretch="Uniform" 
+                           Margin="10"
+                           HorizontalAlignment="Center"
                            VerticalAlignment="Center"
-                           FontSize="16"/>
+                           RenderOptions.BitmapScalingMode="HighQuality"/>
+                    <!-- Placeholder when no preview -->
+                    <TextBlock Text="Select an image to preview" 
+                               Foreground="#666"
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"
+                               FontSize="14"
+                               Visibility="{Binding PreviewImage, Converter={StaticResource NullToVisibility}}"/>
+                </Grid>
             </Border>
             
-            <!-- List View (DataGrid) -->
+            <!-- GridSplitter -->
+            <GridSplitter Grid.Column="1" 
+                          Width="5" 
+                          HorizontalAlignment="Center" 
+                          VerticalAlignment="Stretch"
+                          Background="#CCCCCC"
+                          Cursor="SizeWE"/>
+            
+            <!-- File Browser Area -->
+            <Grid Grid.Column="2">
+                <!-- Loading Overlay -->
+                <Border Background="#80FFFFFF" 
+                        Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
+                        Panel.ZIndex="100">
+                    <TextBlock Text="Loading..." 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"
+                               FontSize="16"/>
+                </Border>
+                
+                <!-- List View (DataGrid) -->
             <DataGrid x:Name="FileListGrid"
                       ItemsSource="{Binding Items}"
                       SelectedItem="{Binding SelectedItem}"
@@ -166,6 +203,7 @@
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
+            </Grid>
         </Grid>
         
         <!-- Status Bar -->
