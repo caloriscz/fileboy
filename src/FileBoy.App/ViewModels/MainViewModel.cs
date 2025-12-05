@@ -291,6 +291,23 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void CopyFullPath()
+    {
+        if (SelectedItem == null)
+            return;
+
+        try
+        {
+            System.Windows.Clipboard.SetText(SelectedItem.FullPath);
+            StatusText = $"Copied: {SelectedItem.FullPath}";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to copy path to clipboard");
+        }
+    }
+
+    [RelayCommand]
     private void OpenSettings()
     {
         var settingsViewModel = _serviceProvider.GetRequiredService<SettingsViewModel>();

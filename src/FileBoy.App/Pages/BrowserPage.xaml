@@ -138,6 +138,13 @@
                       AlternatingRowBackground="#FAFAFA"
                       Visibility="{Binding ViewMode, Converter={StaticResource ViewModeToVisibility}, ConverterParameter=List}"
                       MouseDoubleClick="FileListGrid_MouseDoubleClick">
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Copy Full Path" Command="{Binding CopyFullPathCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Open" Command="{Binding OpenSelectedItemCommand}"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
                 <DataGrid.Columns>
                     <DataGridTemplateColumn Header="Name" Width="*" MinWidth="200">
                         <DataGridTemplateColumn.CellTemplate>
@@ -171,6 +178,13 @@
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      Visibility="{Binding ViewMode, Converter={StaticResource ViewModeToVisibility}, ConverterParameter=Thumbnail}"
                      MouseDoubleClick="ThumbnailList_MouseDoubleClick">
+                <ListBox.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Copy Full Path" Command="{Binding CopyFullPathCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="Open" Command="{Binding OpenSelectedItemCommand}"/>
+                    </ContextMenu>
+                </ListBox.ContextMenu>
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal"/>
