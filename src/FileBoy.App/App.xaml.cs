@@ -65,8 +65,13 @@ public partial class App : Application
         services.AddSingleton<IVideoThumbnailService, VideoThumbnailService>();
         services.AddSingleton<IThumbnailService, ThumbnailService>();
 
+        // Page navigation service
+        services.AddSingleton<Services.PageNavigationService>();
+        services.AddSingleton<Services.IPageNavigationService>(sp => sp.GetRequiredService<Services.PageNavigationService>());
+
         // ViewModels
         services.AddSingleton<MainViewModel>();
+        services.AddTransient<DetailViewModel>();
 
         // Views
         services.AddSingleton<MainWindow>();

@@ -3,54 +3,28 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="clr-namespace:FileBoy.App.ViewModels"
-        xmlns:converters="clr-namespace:FileBoy.App.Converters"
         mc:Ignorable="d"
         Title="FileBoy" 
         Height="700" 
         Width="1100"
-        WindowStartupLocation="CenterScreen"
-        d:DataContext="{d:DesignInstance vm:MainViewModel}">
-    
-    <Window.Resources>
-        <converters:ViewModeToVisibilityConverter x:Key="ViewModeToVisibility"/>
-        <converters:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
-    </Window.Resources>
-    
-    <Window.InputBindings>
-        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
-        <KeyBinding Key="Back" Command="{Binding GoBackCommand}"/>
-        <KeyBinding Modifiers="Alt" Key="Left" Command="{Binding GoBackCommand}"/>
-        <KeyBinding Modifiers="Alt" Key="Right" Command="{Binding GoForwardCommand}"/>
-        <KeyBinding Modifiers="Alt" Key="Up" Command="{Binding GoUpCommand}"/>
-    </Window.InputBindings>
+        WindowStartupLocation="CenterScreen">
     
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         
         <!-- Menu Bar -->
         <Menu Grid.Row="0" Background="#f0f0f0" Padding="2">
             <MenuItem Header="_File">
-                <MenuItem Header="_Refresh" Command="{Binding RefreshCommand}" InputGestureText="F5"/>
+                <MenuItem Header="_Refresh" Click="Refresh_Click" InputGestureText="F5"/>
                 <Separator/>
                 <MenuItem Header="E_xit" Click="Exit_Click" InputGestureText="Alt+F4"/>
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="_List View" 
-                          IsCheckable="True" 
-                          IsChecked="{Binding ViewMode, Converter={StaticResource ViewModeToVisibility}, ConverterParameter=List}"
-                          Command="{Binding SetViewModeCommand}" 
-                          CommandParameter="List"/>
-                <MenuItem Header="_Thumbnail View" 
-                          IsCheckable="True"
-                          IsChecked="{Binding ViewMode, Converter={StaticResource ViewModeToVisibility}, ConverterParameter=Thumbnail}"
-                          Command="{Binding SetViewModeCommand}" 
-                          CommandParameter="Thumbnail"/>
+                <MenuItem Header="_List View" Click="ListView_Click"/>
+                <MenuItem Header="_Thumbnail View" Click="ThumbnailView_Click"/>
             </MenuItem>
             <MenuItem Header="_Options"/>
             <MenuItem Header="_Help">
@@ -58,139 +32,9 @@
             </MenuItem>
         </Menu>
         
-        <!-- Toolbar -->
-        <ToolBar Grid.Row="1" Background="#f0f0f0" ToolBarTray.IsLocked="True">
-            <Button Command="{Binding GoBackCommand}" ToolTip="Back (Alt+Left)" Padding="6,2">
-                <TextBlock Text="←" FontSize="14"/>
-            </Button>
-            <Button Command="{Binding GoForwardCommand}" ToolTip="Forward (Alt+Right)" Padding="6,2">
-                <TextBlock Text="→" FontSize="14"/>
-            </Button>
-            <Button Command="{Binding GoUpCommand}" ToolTip="Up (Alt+Up)" Padding="6,2">
-                <TextBlock Text="↑" FontSize="14"/>
-            </Button>
-            <Separator/>
-            <TextBox x:Name="PathBox" 
-                     Text="{Binding CurrentPath, UpdateSourceTrigger=PropertyChanged}" 
-                     Width="500" 
-                     VerticalContentAlignment="Center"
-                     KeyDown="PathBox_KeyDown"/>
-            <Button Command="{Binding NavigateToPathCommand}" 
-                    CommandParameter="{Binding Text, ElementName=PathBox}"
-                    ToolTip="Go" Padding="6,2">
-                <TextBlock Text="→" FontSize="14"/>
-            </Button>
-            <Separator/>
-            <ToggleButton IsChecked="{Binding ViewMode, Converter={StaticResource ViewModeToVisibility}, ConverterParameter=List}"
-                          Command="{Binding SetViewModeCommand}" 
-                          CommandParameter="List"
-                          ToolTip="List View" Padding="4,2">
-                <TextBlock Text="☰" FontSize="14"/>
-            </ToggleButton>
-            <ToggleButton IsChecked="{Binding ViewMode, Converter={StaticResource ViewModeToVisibility}, ConverterParameter=Thumbnail}"
-                          Command="{Binding SetViewModeCommand}" 
-                          CommandParameter="Thumbnail"
-                          ToolTip="Thumbnail View" Padding="4,2">
-                <TextBlock Text="⊞" FontSize="14"/>
-            </ToggleButton>
-        </ToolBar>
-        
-        <!-- Main Content Area -->
-        <Grid Grid.Row="2">
-            <!-- Loading Overlay -->
-            <Border Background="#80FFFFFF" 
-                    Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
-                    Panel.ZIndex="100">
-                <TextBlock Text="Loading..." 
-                           HorizontalAlignment="Center" 
-                           VerticalAlignment="Center"
-                           FontSize="16"/>
-            </Border>
-            
-            <!-- List View (DataGrid) -->
-            <DataGrid x:Name="FileListGrid"
-                      ItemsSource="{Binding Items}"
-                      SelectedItem="{Binding SelectedItem}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True"
-                      SelectionMode="Extended"
-                      GridLinesVisibility="None"
-                      HeadersVisibility="Column"
-                      RowHeaderWidth="0"
-                      BorderThickness="0"
-                      Background="White"
-                      RowBackground="White"
-                      AlternatingRowBackground="#FAFAFA"
-                      Visibility="{Binding ViewMode, Converter={StaticResource ViewModeToVisibility}, ConverterParameter=List}"
-                      MouseDoubleClick="FileListGrid_MouseDoubleClick">
-                <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Name" Width="*" MinWidth="200">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Margin="4,2">
-                                    <TextBlock Text="{Binding IconGlyph}" FontSize="16" Margin="0,0,6,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Size" Binding="{Binding FormattedSize}" Width="80">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="TextAlignment" Value="Right"/>
-                                <Setter Property="Margin" Value="4,0"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn Header="Type" Binding="{Binding TypeDescription}" Width="180"/>
-                    <DataGridTextColumn Header="Date Modified" Binding="{Binding ModifiedDate, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" Width="130"/>
-                </DataGrid.Columns>
-            </DataGrid>
-            
-            <!-- Thumbnail View -->
-            <ListBox x:Name="ThumbnailList"
-                     ItemsSource="{Binding Items}"
-                     SelectedItem="{Binding SelectedItem}"
-                     Background="White"
-                     BorderThickness="0"
-                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                     Visibility="{Binding ViewMode, Converter={StaticResource ViewModeToVisibility}, ConverterParameter=Thumbnail}"
-                     MouseDoubleClick="ThumbnailList_MouseDoubleClick">
-                <ListBox.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal"/>
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Width="120" Margin="4">
-                            <Border Width="100" Height="100" 
-                                    Background="#F5F5F5" 
-                                    BorderBrush="#DDD" 
-                                    BorderThickness="1"
-                                    CornerRadius="4">
-                                <TextBlock Text="{Binding IconGlyph}" 
-                                           FontSize="48" 
-                                           HorizontalAlignment="Center" 
-                                           VerticalAlignment="Center"/>
-                            </Border>
-                            <TextBlock Text="{Binding Name}" 
-                                       TextTrimming="CharacterEllipsis"
-                                       TextAlignment="Center"
-                                       Margin="0,4,0,0"
-                                       FontSize="11"
-                                       ToolTip="{Binding Name}"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </Grid>
-        
-        <!-- Status Bar -->
-        <StatusBar Grid.Row="3" Background="#f0f0f0">
-            <StatusBarItem>
-                <TextBlock Text="{Binding StatusText}"/>
-            </StatusBarItem>
-        </StatusBar>
+        <!-- Main Frame for Page Navigation -->
+        <Frame x:Name="MainFrame" 
+               Grid.Row="1" 
+               NavigationUIVisibility="Hidden"/>
     </Grid>
 </Window>

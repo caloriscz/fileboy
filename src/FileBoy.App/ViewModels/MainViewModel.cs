@@ -1,11 +1,15 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
+using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FileBoy.App.Pages;
+using FileBoy.App.Services;
 using FileBoy.Core.Enums;
 using FileBoy.Core.Interfaces;
 using FileBoy.Core.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace FileBoy.App.ViewModels;
@@ -19,19 +23,26 @@ public partial class MainViewModel : ObservableObject
     private readonly INavigationHistory _navigationHistory;
     private readonly IProcessLauncher _processLauncher;
     private readonly ISettingsService _settingsService;
+    private readonly IPageNavigationService _pageNavigationService;
+    private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MainViewModel> _logger;
+    private CancellationTokenSource? _thumbnailCts;
 
     public MainViewModel(
         IFileSystemService fileSystemService,
         INavigationHistory navigationHistory,
         IProcessLauncher processLauncher,
         ISettingsService settingsService,
+        IPageNavigationService pageNavigationService,
+        IServiceProvider serviceProvider,
         ILogger<MainViewModel> logger)
     {
         _fileSystemService = fileSystemService;
         _navigationHistory = navigationHistory;
         _processLauncher = processLauncher;
         _settingsService = settingsService;
+        _pageNavigationService = pageNavigationService;
+        _serviceProvider = serviceProvider;
         _logger = logger;
 
         Items = [];
@@ -177,9 +188,7 @@ public partial class MainViewModel : ObservableObject
         }
         else if (item.IsViewableImage)
         {
-            // TODO: Open in built-in viewer
-            // For now, open externally
-            _processLauncher.OpenWithDefault(item.FullPath);
+            OpenImageViewer(item);
         }
         else
         {
@@ -187,17 +196,86 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
-    private void SetViewMode(ViewMode mode)
+    private void OpenImageViewer(FileItemViewModel item)
     {
-        ViewMode = mode;
-        _settingsService.Settings.DefaultView = mode;
+        var allFileItems = Items.Select(i => i.Model).ToList();
+        var detailViewModel = _serviceProvider.GetRequiredService<DetailViewModel>();
+        detailViewModel.Initialize(item.Model, allFileItems);
+        
+        var detailPage = new DetailPage(detailViewModel);
+        _pageNavigationService.NavigateTo(detailPage);
+    }
+
+    [RelayCommand]
+    private async Task SetViewMode(string modeStr)
+    {
+        if (Enum.TryParse<ViewMode>(modeStr, out var mode))
+        {
+            ViewMode = mode;
+            _settingsService.Settings.DefaultView = mode;
+            
+            if (mode == ViewMode.Thumbnail)
+            {
+                await LoadThumbnailsAsync();
+            }
+        }
     }
 
     [RelayCommand]
     private async Task RefreshAsync()
     {
         await NavigateToPathAsync(CurrentPath);
+    }
+
+    private async Task LoadThumbnailsAsync()
+    {
+        // Cancel any previous thumbnail loading
+        _thumbnailCts?.Cancel();
+        _thumbnailCts = new CancellationTokenSource();
+        var ct = _thumbnailCts.Token;
+
+        var itemsToLoad = Items.Where(i => i.Thumbnail == null && (i.ItemType == FileItemType.Image || i.ItemType == FileItemType.Video)).ToList();
+        
+        foreach (var item in itemsToLoad)
+        {
+            if (ct.IsCancellationRequested)
+                break;
+
+            try
+            {
+                if (item.ItemType == FileItemType.Image)
+                {
+                    await LoadImageThumbnailAsync(item, ct);
+                }
+                // TODO: Video thumbnails via FFmpeg
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Failed to load thumbnail for {Path}", item.FullPath);
+            }
+        }
+    }
+
+    private async Task LoadImageThumbnailAsync(FileItemViewModel item, CancellationToken ct)
+    {
+        await Task.Run(() =>
+        {
+            ct.ThrowIfCancellationRequested();
+            
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = new Uri(item.FullPath);
+            bitmap.DecodePixelWidth = 100; // Thumbnail size
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.EndInit();
+            bitmap.Freeze(); // Required for cross-thread access
+            
+            // Update on UI thread
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            {
+                item.Thumbnail = bitmap;
+            });
+        }, ct);
     }
 
     private async Task LoadPathWithoutHistoryAsync(string path)
