@@ -1,0 +1,85 @@
+@inject IThumbnailService ThumbnailService
+
+<div class="thumbnail-grid">
+    @foreach (var item in Items)
+    {
+        <div class="thumbnail-item @(SelectedItem?.FullPath == item.FullPath ? "selected" : "")"
+             @onclick="() => SelectItem(item)"
+             @ondblclick="() => OpenItem(item)">
+            <div class="thumbnail-image">
+                @if (item.IsDirectory)
+                {
+                    <span class="folder-icon">📁</span>
+                }
+                else if (_thumbnails.TryGetValue(item.FullPath, out var thumbnail) && thumbnail != null)
+                {
+                    <img src="@thumbnail" alt="@item.Name" />
+                }
+                else
+                {
+                    <span class="file-icon">@GetIcon(item)</span>
+                }
+            </div>
+            <div class="thumbnail-name" title="@item.Name">
+                @item.Name
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public IEnumerable<FileItem> Items { get; set; } = [];
+
+    [Parameter]
+    public FileItem? SelectedItem { get; set; }
+
+    [Parameter]
+    public EventCallback<FileItem> SelectedItemChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<FileItem> OnItemDoubleClick { get; set; }
+
+    [Parameter]
+    public int ThumbnailSize { get; set; } = 120;
+
+    private Dictionary<string, string?> _thumbnails = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadThumbnailsAsync();
+    }
+
+    private async Task LoadThumbnailsAsync()
+    {
+        var itemsToLoad = Items
+            .Where(i => !i.IsDirectory && !_thumbnails.ContainsKey(i.FullPath))
+            .ToList();
+
+        foreach (var item in itemsToLoad)
+        {
+            var thumbnail = await ThumbnailService.GetThumbnailAsync(item, ThumbnailSize);
+            _thumbnails[item.FullPath] = thumbnail;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SelectItem(FileItem item)
+    {
+        SelectedItem = item;
+        await SelectedItemChanged.InvokeAsync(item);
+    }
+
+    private async Task OpenItem(FileItem item)
+    {
+        await OnItemDoubleClick.InvokeAsync(item);
+    }
+
+    private static string GetIcon(FileItem item) => item.ItemType switch
+    {
+        FileItemType.Directory => "📁",
+        FileItemType.Image => "🖼️",
+        FileItemType.Video => "🎬",
+        _ => "📄"
+    };
+}

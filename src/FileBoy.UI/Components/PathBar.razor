@@ -1,0 +1,89 @@
+@inject INavigationHistory NavigationHistory
+@inject IFileSystemService FileSystemService
+
+<div class="path-bar">
+    <button class="nav-button" disabled="@(!NavigationHistory.CanGoBack)" @onclick="GoBack" title="Back">
+        ←
+    </button>
+    <button class="nav-button" disabled="@(!NavigationHistory.CanGoForward)" @onclick="GoForward" title="Forward">
+        →
+    </button>
+    <button class="nav-button" @onclick="GoUp" title="Up">
+        ↑
+    </button>
+    
+    <input type="text" 
+           class="path-input" 
+           @bind="CurrentPath" 
+           @bind:event="oninput"
+           @onkeydown="OnPathKeyDown"
+           placeholder="Enter path..." />
+    
+    <button class="nav-button go-button" @onclick="NavigateToPath" title="Go">
+        →
+    </button>
+</div>
+
+@code {
+    [Parameter]
+    public string CurrentPath { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<string> CurrentPathChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnNavigate { get; set; }
+
+    private async Task GoBack()
+    {
+        var path = NavigationHistory.GoBack();
+        await UpdatePath(path);
+    }
+
+    private async Task GoForward()
+    {
+        var path = NavigationHistory.GoForward();
+        await UpdatePath(path);
+    }
+
+    private async Task GoUp()
+    {
+        if (string.IsNullOrEmpty(CurrentPath))
+            return;
+
+        var parent = Directory.GetParent(CurrentPath)?.FullName;
+        if (!string.IsNullOrEmpty(parent))
+        {
+            await NavigateTo(parent);
+        }
+    }
+
+    private async Task NavigateToPath()
+    {
+        if (FileSystemService.IsValidDirectory(CurrentPath))
+        {
+            await NavigateTo(CurrentPath);
+        }
+    }
+
+    private async Task OnPathKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await NavigateToPath();
+        }
+    }
+
+    private async Task NavigateTo(string path)
+    {
+        NavigationHistory.Navigate(path);
+        await UpdatePath(path);
+    }
+
+    private async Task UpdatePath(string path)
+    {
+        CurrentPath = path;
+        await CurrentPathChanged.InvokeAsync(path);
+        await OnNavigate.InvokeAsync(path);
+    }
+}

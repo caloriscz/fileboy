@@ -1,0 +1,85 @@
+.file-list {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+    font-size: 13px;
+}
+
+.list-header {
+    display: flex;
+    padding: 8px 12px;
+    background-color: #2d2d2d;
+    border-bottom: 1px solid #3e3e3e;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.list-body {
+    flex: 1;
+    overflow-y: auto;
+    background-color: #1e1e1e;
+}
+
+.list-row {
+    display: flex;
+    padding: 6px 12px;
+    border-bottom: 1px solid #2d2d2d;
+    cursor: pointer;
+}
+
+.list-row:hover {
+    background-color: #2a2d2e;
+}
+
+.list-row.selected {
+    background-color: #094771;
+}
+
+.col-name {
+    flex: 3;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.col-date {
+    flex: 1.5;
+    color: #888;
+}
+
+.col-type {
+    flex: 1;
+    color: #888;
+}
+
+.col-size {
+    flex: 1;
+    text-align: right;
+    color: #888;
+}
+
+.file-icon {
+    font-size: 16px;
+}
+
+/* Scrollbar styling */
+.list-body::-webkit-scrollbar {
+    width: 10px;
+}
+
+.list-body::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.list-body::-webkit-scrollbar-thumb {
+    background: #424242;
+    border-radius: 5px;
+}
+
+.list-body::-webkit-scrollbar-thumb:hover {
+    background: #4f4f4f;
+}

@@ -1,0 +1,49 @@
+.browser-page {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+    background-color: #252526;
+    border-bottom: 1px solid #3e3e3e;
+}
+
+.toolbar-button {
+    padding: 6px 10px;
+    background-color: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: #d4d4d4;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.toolbar-button:hover {
+    background-color: #3e3e3e;
+}
+
+.toolbar-button.active {
+    background-color: #094771;
+    border-color: #007acc;
+}
+
+.file-view {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #888;
+    font-size: 14px;
+}

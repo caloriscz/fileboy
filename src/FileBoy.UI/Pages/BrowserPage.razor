@@ -1,0 +1,113 @@
+@page "/"
+@inject IFileSystemService FileSystemService
+@inject INavigationHistory NavigationHistory
+@inject IProcessLauncher ProcessLauncher
+@inject ISettingsService SettingsService
+
+<div class="browser-page">
+    <PathBar @bind-CurrentPath="_currentPath" OnNavigate="LoadItems" />
+    
+    <div class="toolbar">
+        <button class="toolbar-button @(_viewMode == ViewMode.List ? "active" : "")" 
+                @onclick="() => SetViewMode(ViewMode.List)" 
+                title="List View">
+            ☰
+        </button>
+        <button class="toolbar-button @(_viewMode == ViewMode.Thumbnail ? "active" : "")" 
+                @onclick="() => SetViewMode(ViewMode.Thumbnail)" 
+                title="Thumbnail View">
+            ⊞
+        </button>
+    </div>
+    
+    <div class="file-view">
+        @if (_isLoading)
+        {
+            <div class="loading">Loading...</div>
+        }
+        else if (_viewMode == ViewMode.List)
+        {
+            <FileList Items="_items" 
+                      @bind-SelectedItem="_selectedItem" 
+                      OnItemDoubleClick="HandleItemDoubleClick" />
+        }
+        else
+        {
+            <ThumbnailGrid Items="_items" 
+                           @bind-SelectedItem="_selectedItem" 
+                           OnItemDoubleClick="HandleItemDoubleClick"
+                           ThumbnailSize="@SettingsService.Settings.ThumbnailSize" />
+        }
+    </div>
+</div>
+
+@code {
+    private string _currentPath = string.Empty;
+    private ViewMode _viewMode = ViewMode.List;
+    private List<FileItem> _items = [];
+    private FileItem? _selectedItem;
+    private bool _isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SettingsService.LoadAsync();
+        _viewMode = SettingsService.Settings.DefaultView;
+        _currentPath = SettingsService.Settings.LastPath;
+        
+        if (FileSystemService.IsValidDirectory(_currentPath))
+        {
+            NavigationHistory.Navigate(_currentPath);
+            await LoadItems(_currentPath);
+        }
+    }
+
+    private async Task LoadItems(string path)
+    {
+        if (string.IsNullOrEmpty(path) || !FileSystemService.IsValidDirectory(path))
+            return;
+
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var items = await FileSystemService.GetItemsAsync(path);
+            _items = items
+                .OrderByDescending(i => i.IsDirectory)
+                .ThenBy(i => i.Name)
+                .ToList();
+            
+            _currentPath = path;
+            SettingsService.Settings.LastPath = path;
+            await SettingsService.SaveAsync();
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task HandleItemDoubleClick(FileItem item)
+    {
+        if (item.IsDirectory)
+        {
+            NavigationHistory.Navigate(item.FullPath);
+            await LoadItems(item.FullPath);
+        }
+        else if (item.IsViewableImage)
+        {
+            // TODO: Navigate to detail view
+            // For now, open externally
+            ProcessLauncher.OpenWithDefault(item.FullPath);
+        }
+        else
+        {
+            ProcessLauncher.OpenWithDefault(item.FullPath);
+        }
+    }
+
+    private void SetViewMode(ViewMode mode)
+    {
+        _viewMode = mode;
+    }
+}

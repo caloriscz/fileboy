@@ -1,0 +1,68 @@
+@using FileBoy.Core.Extensions
+
+<div class="file-list">
+    <div class="list-header">
+        <span class="col-name">Name</span>
+        <span class="col-date">Date Modified</span>
+        <span class="col-type">Type</span>
+        <span class="col-size">Size</span>
+    </div>
+    
+    <div class="list-body">
+        @foreach (var item in Items)
+        {
+            <div class="list-row @(SelectedItem?.FullPath == item.FullPath ? "selected" : "")"
+                 @onclick="() => SelectItem(item)"
+                 @ondblclick="() => OpenItem(item)">
+                <span class="col-name">
+                    <span class="file-icon">@GetIcon(item)</span>
+                    @item.Name
+                </span>
+                <span class="col-date">@item.ModifiedDate.ToString("yyyy-MM-dd HH:mm")</span>
+                <span class="col-type">@GetTypeDescription(item)</span>
+                <span class="col-size">@(item.IsDirectory ? "" : item.Size.FormatFileSize())</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public IEnumerable<FileItem> Items { get; set; } = [];
+
+    [Parameter]
+    public FileItem? SelectedItem { get; set; }
+
+    [Parameter]
+    public EventCallback<FileItem> SelectedItemChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<FileItem> OnItemDoubleClick { get; set; }
+
+    private async Task SelectItem(FileItem item)
+    {
+        SelectedItem = item;
+        await SelectedItemChanged.InvokeAsync(item);
+    }
+
+    private async Task OpenItem(FileItem item)
+    {
+        await OnItemDoubleClick.InvokeAsync(item);
+    }
+
+    private static string GetIcon(FileItem item) => item.ItemType switch
+    {
+        FileItemType.Directory => "📁",
+        FileItemType.Image => "🖼️",
+        FileItemType.Video => "🎬",
+        _ => "📄"
+    };
+
+    private static string GetTypeDescription(FileItem item) => item.ItemType switch
+    {
+        FileItemType.Directory => "Folder",
+        FileItemType.Image => "Image",
+        FileItemType.Video => "Video",
+        _ => string.IsNullOrEmpty(item.Extension) ? "File" : $"{item.Extension.TrimStart('.').ToUpper()} File"
+    };
+}
