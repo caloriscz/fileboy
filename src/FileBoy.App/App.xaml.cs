@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Windows;
+using FileBoy.App.ViewModels;
 using FileBoy.Core.Interfaces;
 using FileBoy.Infrastructure.FileSystem;
 using FileBoy.Infrastructure.Services;
@@ -39,15 +40,12 @@ public partial class App : Application
         Log.Information("FileBoy starting up");
 
         // Create and show main window
-        var mainWindow = new MainWindow();
+        var mainWindow = Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
     }
 
     private static void ConfigureServices(IServiceCollection services)
     {
-        // Blazor WebView services (required)
-        services.AddWpfBlazorWebView();
-
         // Logging
         services.AddLogging(builder =>
         {
@@ -66,6 +64,12 @@ public partial class App : Application
         services.AddSingleton<IFFmpegManager, FFmpegManager>();
         services.AddSingleton<IVideoThumbnailService, VideoThumbnailService>();
         services.AddSingleton<IThumbnailService, ThumbnailService>();
+
+        // ViewModels
+        services.AddSingleton<MainViewModel>();
+
+        // Views
+        services.AddSingleton<MainWindow>();
     }
 
     protected override void OnExit(ExitEventArgs e)

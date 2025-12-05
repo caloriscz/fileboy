@@ -1,7 +1,7 @@
 # FileBoy - AI Coding Instructions
 
 ## Project Overview
-FileBoy is a media/file manager application (similar to XnView/classic ACDSee) built with WPF + Blazor Hybrid. The app provides list/thumbnail views, file navigation, and image preview capabilities.
+FileBoy is a media/file manager application (similar to XnView/classic ACDSee) built with **WPF** using **MVVM** pattern. The app provides list/thumbnail views, file navigation, and image preview capabilities.
 
 ### Core Behaviors
 - **Default view**: List view (user can switch to thumbnail)
@@ -37,7 +37,8 @@ public interface IFFmpegManager
 
 ## Technology Stack
 - **.NET 10** - Target framework
-- **WPF + Blazor Hybrid** - WPF hosts BlazorWebView for modern UI
+- **WPF** - Windows Presentation Foundation for UI
+- **MVVM** - Model-View-ViewModel pattern (CommunityToolkit.Mvvm)
 - **Serilog** - Structured logging
 - **Microsoft.Extensions.DependencyInjection** - DI container
 - **xUnit** - Unit testing framework
@@ -47,33 +48,86 @@ public interface IFFmpegManager
 ### Project Structure
 ```
 src/
-├── FileBoy.App/           # WPF host (MainWindow hosts BlazorWebView)
+├── FileBoy.App/           # WPF application (Views, ViewModels, App startup)
+│   ├── Views/             # XAML views (MainWindow, DetailWindow)
+│   ├── ViewModels/        # ViewModels with INotifyPropertyChanged
+│   ├── Converters/        # IValueConverters for XAML bindings
+│   └── Resources/         # Styles, templates, icons
 ├── FileBoy.Core/          # Business logic, models, interfaces (no UI deps)
-├── FileBoy.UI/            # Blazor components (Razor Class Library)
 └── FileBoy.Infrastructure/ # File system operations, external integrations
 tests/
 ├── FileBoy.Core.Tests/
 └── FileBoy.Infrastructure.Tests/
 ```
 
-### SOLID Principles (Strictly Enforced)
-- **Services**: One responsibility per class (e.g., `FileNavigationService`, `ThumbnailService`)
+### MVVM Pattern (Strictly Enforced)
+- **ViewModels**: Inherit from `ObservableObject` (CommunityToolkit.Mvvm)
+- **Commands**: Use `RelayCommand` and `AsyncRelayCommand` from CommunityToolkit.Mvvm
+- **Services**: One responsibility per class (e.g., `FileSystemService`, `ThumbnailService`)
 - **Interfaces**: Define in `FileBoy.Core/Interfaces/`, implement in Infrastructure
 - **DI**: All services registered in `App.xaml.cs` via `IServiceCollection`
 
 ### Key Patterns
 ```csharp
+// ViewModel pattern with CommunityToolkit.Mvvm
+public partial class MainViewModel : ObservableObject
+{
+    private readonly IFileSystemService _fileSystemService;
+    
+    [ObservableProperty]
+    private string _currentPath = string.Empty;
+    
+    [ObservableProperty]
+    private ObservableCollection<FileItemViewModel> _items = [];
+    
+    [RelayCommand]
+    private async Task NavigateToPath(string path)
+    {
+        // Navigation logic
+    }
+}
+
 // Service registration pattern (App.xaml.cs)
 services.AddSingleton<IFileSystemService, FileSystemService>();
 services.AddSingleton<IThumbnailService, ThumbnailService>();
+services.AddSingleton<MainViewModel>();
 services.AddSerilog(config => config.WriteTo.File("logs/fileboy-.log", rollingInterval: RollingInterval.Day));
+```
 
-// Interface-first design
-public interface IFileSystemService
-{
-    Task<IEnumerable<FileItem>> GetFilesAsync(string path);
-    Task<FileItem> GetFileDetailsAsync(string filePath);
-}
+### WPF UI Components
+- **DataGrid**: For list view with columns (Name, Size, Type, Date Modified)
+- **ListBox with WrapPanel**: For thumbnail grid view
+- **Menu**: Classic File, View, Options, Help menu
+- **ToolBar**: Navigation buttons, view toggle
+- **TextBox**: Path input with Enter key navigation
+
+```xaml
+<!-- DataGrid for list view -->
+<DataGrid ItemsSource="{Binding Items}" 
+          SelectedItem="{Binding SelectedItem}"
+          AutoGenerateColumns="False"
+          IsReadOnly="True"
+          SelectionMode="Extended">
+    <DataGrid.InputBindings>
+        <MouseBinding MouseAction="LeftDoubleClick" 
+                      Command="{Binding OpenItemCommand}"/>
+    </DataGrid.InputBindings>
+    <DataGrid.Columns>
+        <DataGridTemplateColumn Header="Name" Width="*">
+            <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="{Binding Icon}" Width="16" Height="16"/>
+                        <TextBlock Text="{Binding Name}" Margin="4,0,0,0"/>
+                    </StackPanel>
+                </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="Size" Binding="{Binding FormattedSize}" Width="80"/>
+        <DataGridTextColumn Header="Type" Binding="{Binding TypeDescription}" Width="150"/>
+        <DataGridTextColumn Header="Date Modified" Binding="{Binding ModifiedDate, StringFormat='{}{0:dd.MM.yyyy HH:mm}'}" Width="130"/>
+    </DataGrid.Columns>
+</DataGrid>
 ```
 
 ## Application Settings
@@ -96,21 +150,7 @@ public class AppSettings
 services.AddMemoryCache(options => options.SizeLimit = 500); // ~500 thumbnails
 ```
 
-## Blazor Hybrid Conventions
-
-### Component Location
-- **Pages**: `FileBoy.UI/Pages/` - Full page components (e.g., `BrowserPage.razor`, `DetailPage.razor`)
-- **Components**: `FileBoy.UI/Components/` - Reusable UI (e.g., `ThumbnailGrid.razor`, `FileList.razor`)
-- **Shared**: `FileBoy.UI/Shared/` - Layouts, common components
-
-### State Management
-Use cascading parameters or inject services for shared state:
-```csharp
-@inject INavigationState NavigationState
-@inject IFileSystemService FileService
-```
-
-### Navigation History Service
+## Navigation History Service
 ```csharp
 public interface INavigationHistory
 {
@@ -157,3 +197,4 @@ public class FileSystemService(ILogger<FileSystemService> logger)
 - Use `ValueTask` for hot paths, `Task` otherwise
 - Generate xUnit tests with AAA pattern for new services
 - Use `[Theory]` with `[InlineData]` for parameterized tests
+- Use CommunityToolkit.Mvvm source generators (`[ObservableProperty]`, `[RelayCommand]`)
