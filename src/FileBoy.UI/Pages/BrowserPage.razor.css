@@ -7,29 +7,29 @@
 
 .toolbar {
     display: flex;
-    gap: 4px;
-    padding: 8px 12px;
-    background-color: #252526;
-    border-bottom: 1px solid #3e3e3e;
+    gap: 2px;
+    padding: 4px 8px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ccc;
 }
 
 .toolbar-button {
-    padding: 6px 10px;
+    padding: 4px 8px;
     background-color: transparent;
     border: 1px solid transparent;
     border-radius: 3px;
-    color: #d4d4d4;
+    color: #333;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .toolbar-button:hover {
-    background-color: #3e3e3e;
+    background-color: #e0e0e0;
 }
 
 .toolbar-button.active {
-    background-color: #094771;
-    border-color: #007acc;
+    background-color: #cde8ff;
+    border-color: #90c8f8;
 }
 
 .file-view {
