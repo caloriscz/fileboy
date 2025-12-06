@@ -328,14 +328,32 @@ public partial class MainViewModel : ObservableObject
     private void Cut()
     {
         var selectedPaths = GetSelectedPaths();
+        _logger.LogInformation("Cut command called with {Count} selected items", selectedPaths.Count);
+        
         if (selectedPaths.Count == 0)
+        {
+            _logger.LogWarning("No items selected for cut");
             return;
+        }
 
         try
         {
             _clipboardService.Cut(selectedPaths);
+            
+            // Also set Windows clipboard
+            var fileCollection = new System.Collections.Specialized.StringCollection();
+            fileCollection.AddRange(selectedPaths.ToArray());
+            System.Windows.Clipboard.Clear();
+            System.Windows.Clipboard.SetFileDropList(fileCollection);
+            
+            // Set preferred drop effect to move (cut)
+            var dropEffect = new System.IO.MemoryStream(4);
+            dropEffect.Write(BitConverter.GetBytes(2), 0, 4); // 2 = DROPEFFECT_MOVE
+            dropEffect.Position = 0;
+            System.Windows.Clipboard.SetData("Preferred DropEffect", dropEffect);
+            
             StatusText = $"Cut {selectedPaths.Count} item(s) to clipboard";
-            _logger.LogInformation("Cut {Count} items", selectedPaths.Count);
+            _logger.LogInformation("Cut {Count} items successfully", selectedPaths.Count);
         }
         catch (Exception ex)
         {
@@ -348,14 +366,26 @@ public partial class MainViewModel : ObservableObject
     private void Copy()
     {
         var selectedPaths = GetSelectedPaths();
+        _logger.LogInformation("Copy command called with {Count} selected items", selectedPaths.Count);
+        
         if (selectedPaths.Count == 0)
+        {
+            _logger.LogWarning("No items selected for copy");
             return;
+        }
 
         try
         {
             _clipboardService.Copy(selectedPaths);
+            
+            // Also set Windows clipboard
+            var fileCollection = new System.Collections.Specialized.StringCollection();
+            fileCollection.AddRange(selectedPaths.ToArray());
+            System.Windows.Clipboard.Clear();
+            System.Windows.Clipboard.SetFileDropList(fileCollection);
+            
             StatusText = $"Copied {selectedPaths.Count} item(s) to clipboard";
-            _logger.LogInformation("Copied {Count} items", selectedPaths.Count);
+            _logger.LogInformation("Copied {Count} items successfully", selectedPaths.Count);
         }
         catch (Exception ex)
         {
@@ -367,8 +397,11 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private async Task PasteAsync()
     {
+        _logger.LogInformation("PasteAsync command called");
+        
         if (!_clipboardService.CanPaste())
         {
+            _logger.LogWarning("CanPaste returned false - nothing to paste");
             StatusText = "Nothing to paste";
             return;
         }
@@ -382,14 +415,18 @@ public partial class MainViewModel : ObservableObject
             if (clipboardData.Operation == Core.Enums.ClipboardOperation.Copy)
             {
                 StatusText = $"Copying {clipboardData.FilePaths.Count} item(s)...";
+                _logger.LogInformation("Starting copy of {Count} items to {Destination}", clipboardData.FilePaths.Count, CurrentPath);
                 await _fileSystemService.CopyFilesAsync(clipboardData.FilePaths, CurrentPath);
                 StatusText = $"Successfully copied {clipboardData.FilePaths.Count} item(s)";
+                _logger.LogInformation("Copy completed successfully");
             }
             else if (clipboardData.Operation == Core.Enums.ClipboardOperation.Cut)
             {
                 StatusText = $"Moving {clipboardData.FilePaths.Count} item(s)...";
+                _logger.LogInformation("Starting move of {Count} items to {Destination}", clipboardData.FilePaths.Count, CurrentPath);
                 await _fileSystemService.MoveFilesAsync(clipboardData.FilePaths, CurrentPath);
                 StatusText = $"Successfully moved {clipboardData.FilePaths.Count} item(s)";
+                _logger.LogInformation("Move completed successfully");
                 _clipboardService.Clear();
             }
 
@@ -399,7 +436,12 @@ public partial class MainViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to paste items");
-            StatusText = "Failed to paste items";
+            StatusText = $"Failed to paste items: {ex.Message}";
+            System.Windows.MessageBox.Show(
+                $"Failed to paste items: {ex.Message}",
+                "Paste Error",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Error);
         }
         finally
         {
@@ -461,13 +503,17 @@ public partial class MainViewModel : ObservableObject
     {
         if (SelectedItems != null && SelectedItems.Count > 0)
         {
-            return SelectedItems.Cast<FileItemViewModel>().Select(i => i.FullPath).ToList();
+            var paths = SelectedItems.Cast<FileItemViewModel>().Select(i => i.FullPath).ToList();
+            _logger.LogDebug("GetSelectedPaths from SelectedItems: {Count} items", paths.Count);
+            return paths;
         }
         else if (SelectedItem != null)
         {
+            _logger.LogDebug("GetSelectedPaths from SelectedItem: {Path}", SelectedItem.FullPath);
             return [SelectedItem.FullPath];
         }
 
+        _logger.LogDebug("GetSelectedPaths: No selection");
         return [];
     }
 

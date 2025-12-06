@@ -8,6 +8,7 @@ namespace FileBoy.Infrastructure.Services;
 
 /// <summary>
 /// Implementation of clipboard service for file operations.
+/// Uses a callback to interact with Windows clipboard from UI thread.
 /// </summary>
 public sealed class ClipboardService : IClipboardService
 {
@@ -36,7 +37,7 @@ public sealed class ClipboardService : IClipboardService
                 FilePaths = paths
             };
 
-            _logger.LogInformation("Copied {Count} items to clipboard", paths.Count);
+            _logger.LogInformation("Copied {Count} items to internal clipboard", paths.Count);
         }
         catch (Exception ex)
         {
@@ -62,7 +63,7 @@ public sealed class ClipboardService : IClipboardService
                 FilePaths = paths
             };
 
-            _logger.LogInformation("Cut {Count} items to clipboard", paths.Count);
+            _logger.LogInformation("Cut {Count} items to internal clipboard", paths.Count);
         }
         catch (Exception ex)
         {
@@ -73,6 +74,8 @@ public sealed class ClipboardService : IClipboardService
 
     public ClipboardData GetClipboardData()
     {
+        _logger.LogDebug("GetClipboardData called - HasData: {HasData}, Operation: {Op}, Count: {Count}", 
+            _clipboardData.HasData, _clipboardData.Operation, _clipboardData.FilePaths.Count);
         return _clipboardData;
     }
 
@@ -84,6 +87,9 @@ public sealed class ClipboardService : IClipboardService
 
     public bool CanPaste()
     {
-        return _clipboardData.HasData;
+        var canPaste = _clipboardData.HasData;
+        _logger.LogDebug("CanPaste called - Result: {CanPaste}, Operation: {Op}, Count: {Count}", 
+            canPaste, _clipboardData.Operation, _clipboardData.FilePaths.Count);
+        return canPaste;
     }
 }

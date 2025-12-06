@@ -147,16 +147,25 @@ public sealed class FileSystemService : IFileSystemService
     /// <inheritdoc />
     public async Task CopyFilesAsync(IEnumerable<string> sourcePaths, string destinationPath, CancellationToken ct = default)
     {
-        _logger.LogInformation("Copying {Count} items to {Destination}", sourcePaths.Count(), destinationPath);
+        var paths = sourcePaths.ToList();
+        _logger.LogInformation("Copying {Count} items to {Destination}", paths.Count, destinationPath);
 
         await Task.Run(() =>
         {
-            foreach (var sourcePath in sourcePaths)
+            foreach (var sourcePath in paths)
             {
                 ct.ThrowIfCancellationRequested();
 
                 try
                 {
+                    // Check if source is the same as destination directory
+                    var sourceDir = Path.GetDirectoryName(sourcePath);
+                    if (string.Equals(sourceDir, destinationPath, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Copying to same directory - need to create a copy with different name
+                        _logger.LogDebug("Copying {Source} to same directory", sourcePath);
+                    }
+
                     if (File.Exists(sourcePath))
                     {
                         CopyFile(sourcePath, destinationPath, ct);
