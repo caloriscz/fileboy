@@ -374,4 +374,47 @@ public sealed class FileSystemService : IFileSystemService
             }
         }, ct);
     }
+
+    /// <inheritdoc />
+    public async Task<string> RenameAsync(string oldPath, string newName, CancellationToken ct = default)
+    {
+        _logger.LogInformation("Renaming {OldPath} to {NewName}", oldPath, newName);
+
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var directory = Path.GetDirectoryName(oldPath) ?? string.Empty;
+                var newPath = Path.Combine(directory, newName);
+
+                // Check if target already exists
+                if (File.Exists(newPath) || Directory.Exists(newPath))
+                {
+                    throw new IOException($"An item with the name '{newName}' already exists.");
+                }
+
+                if (File.Exists(oldPath))
+                {
+                    File.Move(oldPath, newPath);
+                    _logger.LogInformation("Renamed file to: {NewPath}", newPath);
+                }
+                else if (Directory.Exists(oldPath))
+                {
+                    Directory.Move(oldPath, newPath);
+                    _logger.LogInformation("Renamed directory to: {NewPath}", newPath);
+                }
+                else
+                {
+                    throw new FileNotFoundException($"The item '{oldPath}' does not exist.");
+                }
+
+                return newPath;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to rename {OldPath} to {NewName}", oldPath, newName);
+                throw;
+            }
+        }, ct);
+    }
 }

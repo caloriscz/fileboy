@@ -29,6 +29,7 @@
                 <MenuItem x:Name="CopyMenuItem" Header="_Copy" InputGestureText="Ctrl+C"/>
                 <MenuItem x:Name="PasteMenuItem" Header="_Paste" InputGestureText="Ctrl+V"/>
                 <Separator/>
+                <MenuItem x:Name="RenameMenuItem" Header="_Rename" InputGestureText="F2"/>
                 <MenuItem x:Name="DeleteMenuItem" Header="_Delete" InputGestureText="Del"/>
             </MenuItem>
             <MenuItem Header="_View">

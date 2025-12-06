@@ -539,6 +539,53 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    [RelayCommand(CanExecute = nameof(CanRename))]
+    private async Task RenameAsync()
+    {
+        try
+        {
+            if (SelectedItem == null) return;
+
+            var currentName = SelectedItem.Name;
+            var isDirectory = SelectedItem.IsDirectory;
+
+            var dialog = new Views.RenameDialog(currentName, isDirectory)
+            {
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                IsLoading = true;
+                StatusText = $"Renaming '{currentName}' to '{dialog.NewName}'...";
+
+                var newPath = await _fileSystemService.RenameAsync(SelectedItem.FullPath, dialog.NewName);
+                
+                StatusText = $"Renamed to: {Path.GetFileName(newPath)}";
+                _logger.LogInformation("Renamed {Old} to {New}", SelectedItem.FullPath, newPath);
+
+                // Refresh to show the renamed item
+                await RefreshAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to rename item");
+            StatusText = "Failed to rename item";
+            System.Windows.MessageBox.Show(
+                $"Failed to rename item: {ex.Message}",
+                "Rename Error",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private bool CanRename() => SelectedItem != null;
+
     private List<string> GetSelectedPaths()
     {
         if (SelectedItems != null && SelectedItems.Count > 0)

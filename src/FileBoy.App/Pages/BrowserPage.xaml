@@ -30,6 +30,7 @@
         <KeyBinding Modifiers="Ctrl" Key="V" Command="{Binding PasteCommand}"/>
         <KeyBinding Key="Delete" Command="{Binding DeleteCommand}"/>
         <KeyBinding Modifiers="Ctrl+Shift" Key="N" Command="{Binding NewFolderCommand}"/>
+        <KeyBinding Key="F2" Command="{Binding RenameCommand}"/>
     </Page.InputBindings>
     
     <Grid>
@@ -154,6 +155,7 @@
                         <MenuItem Header="Copy" Command="{Binding CopyCommand}" InputGestureText="Ctrl+C"/>
                         <MenuItem Header="Paste" Command="{Binding PasteCommand}" InputGestureText="Ctrl+V"/>
                         <Separator/>
+                        <MenuItem Header="Rename" Command="{Binding RenameCommand}" InputGestureText="F2"/>
                         <MenuItem Header="Delete" Command="{Binding DeleteCommand}" InputGestureText="Del"/>
                         <Separator/>
                         <MenuItem Header="Copy Full Path" Command="{Binding CopyFullPathCommand}"/>
@@ -204,6 +206,7 @@
                         <MenuItem Header="Copy" Command="{Binding CopyCommand}" InputGestureText="Ctrl+C"/>
                         <MenuItem Header="Paste" Command="{Binding PasteCommand}" InputGestureText="Ctrl+V"/>
                         <Separator/>
+                        <MenuItem Header="Rename" Command="{Binding RenameCommand}" InputGestureText="F2"/>
                         <MenuItem Header="Delete" Command="{Binding DeleteCommand}" InputGestureText="Del"/>
                         <Separator/>
                         <MenuItem Header="Copy Full Path" Command="{Binding CopyFullPathCommand}"/>

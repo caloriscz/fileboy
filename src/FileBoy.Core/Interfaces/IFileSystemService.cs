@@ -70,4 +70,13 @@ public interface IFileSystemService
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Full path of the created folder.</returns>
     Task<string> CreateFolderAsync(string parentPath, string folderName, CancellationToken ct = default);
+
+    /// <summary>
+    /// Renames a file or directory.
+    /// </summary>
+    /// <param name="oldPath">Current full path.</param>
+    /// <param name="newName">New name (without path).</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Full path of the renamed item.</returns>
+    Task<string> RenameAsync(string oldPath, string newName, CancellationToken ct = default);
 }
