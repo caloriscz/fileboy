@@ -27,6 +27,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IPageNavigationService _pageNavigationService;
     private readonly IVideoThumbnailService _videoThumbnailService;
     private readonly IFFmpegManager _ffmpegManager;
+    private readonly IClipboardService _clipboardService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MainViewModel> _logger;
     private CancellationTokenSource? _thumbnailCts;
@@ -39,6 +40,7 @@ public partial class MainViewModel : ObservableObject
         IPageNavigationService pageNavigationService,
         IVideoThumbnailService videoThumbnailService,
         IFFmpegManager ffmpegManager,
+        IClipboardService clipboardService,
         IServiceProvider serviceProvider,
         ILogger<MainViewModel> logger)
     {
@@ -49,6 +51,7 @@ public partial class MainViewModel : ObservableObject
         _pageNavigationService = pageNavigationService;
         _videoThumbnailService = videoThumbnailService;
         _ffmpegManager = ffmpegManager;
+        _clipboardService = clipboardService;
         _serviceProvider = serviceProvider;
         _logger = logger;
 
@@ -63,6 +66,9 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private FileItemViewModel? _selectedItem;
+
+    [ObservableProperty]
+    private System.Collections.IList? _selectedItems;
 
     [ObservableProperty]
     private ImageSource? _previewImage;
@@ -316,6 +322,153 @@ public partial class MainViewModel : ObservableObject
         {
             _logger.LogError(ex, "Failed to copy path to clipboard");
         }
+    }
+
+    [RelayCommand]
+    private void Cut()
+    {
+        var selectedPaths = GetSelectedPaths();
+        if (selectedPaths.Count == 0)
+            return;
+
+        try
+        {
+            _clipboardService.Cut(selectedPaths);
+            StatusText = $"Cut {selectedPaths.Count} item(s) to clipboard";
+            _logger.LogInformation("Cut {Count} items", selectedPaths.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to cut items");
+            StatusText = "Failed to cut items";
+        }
+    }
+
+    [RelayCommand]
+    private void Copy()
+    {
+        var selectedPaths = GetSelectedPaths();
+        if (selectedPaths.Count == 0)
+            return;
+
+        try
+        {
+            _clipboardService.Copy(selectedPaths);
+            StatusText = $"Copied {selectedPaths.Count} item(s) to clipboard";
+            _logger.LogInformation("Copied {Count} items", selectedPaths.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to copy items");
+            StatusText = "Failed to copy items";
+        }
+    }
+
+    [RelayCommand]
+    private async Task PasteAsync()
+    {
+        if (!_clipboardService.CanPaste())
+        {
+            StatusText = "Nothing to paste";
+            return;
+        }
+
+        var clipboardData = _clipboardService.GetClipboardData();
+        
+        try
+        {
+            IsLoading = true;
+
+            if (clipboardData.Operation == Core.Enums.ClipboardOperation.Copy)
+            {
+                StatusText = $"Copying {clipboardData.FilePaths.Count} item(s)...";
+                await _fileSystemService.CopyFilesAsync(clipboardData.FilePaths, CurrentPath);
+                StatusText = $"Successfully copied {clipboardData.FilePaths.Count} item(s)";
+            }
+            else if (clipboardData.Operation == Core.Enums.ClipboardOperation.Cut)
+            {
+                StatusText = $"Moving {clipboardData.FilePaths.Count} item(s)...";
+                await _fileSystemService.MoveFilesAsync(clipboardData.FilePaths, CurrentPath);
+                StatusText = $"Successfully moved {clipboardData.FilePaths.Count} item(s)";
+                _clipboardService.Clear();
+            }
+
+            // Refresh the current directory
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to paste items");
+            StatusText = "Failed to paste items";
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteAsync()
+    {
+        var selectedPaths = GetSelectedPaths();
+        if (selectedPaths.Count == 0)
+            return;
+
+        // Ask for confirmation
+        var message = selectedPaths.Count == 1
+            ? $"Are you sure you want to delete '{Path.GetFileName(selectedPaths[0])}'?"
+            : $"Are you sure you want to delete {selectedPaths.Count} items?";
+
+        var result = System.Windows.MessageBox.Show(
+            message,
+            "Confirm Delete",
+            System.Windows.MessageBoxButton.YesNo,
+            System.Windows.MessageBoxImage.Warning);
+
+        if (result != System.Windows.MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            IsLoading = true;
+            StatusText = $"Deleting {selectedPaths.Count} item(s)...";
+
+            await _fileSystemService.DeleteFilesAsync(selectedPaths);
+
+            StatusText = $"Successfully deleted {selectedPaths.Count} item(s)";
+            _logger.LogInformation("Deleted {Count} items", selectedPaths.Count);
+
+            // Refresh the current directory
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete items");
+            StatusText = "Failed to delete items";
+            System.Windows.MessageBox.Show(
+                $"Failed to delete items: {ex.Message}",
+                "Delete Error",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private List<string> GetSelectedPaths()
+    {
+        if (SelectedItems != null && SelectedItems.Count > 0)
+        {
+            return SelectedItems.Cast<FileItemViewModel>().Select(i => i.FullPath).ToList();
+        }
+        else if (SelectedItem != null)
+        {
+            return [SelectedItem.FullPath];
+        }
+
+        return [];
     }
 
     [RelayCommand]

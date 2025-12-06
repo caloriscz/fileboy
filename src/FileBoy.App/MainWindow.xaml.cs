@@ -29,6 +29,10 @@ public partial class MainWindow : Window
         
         // Bind menu items to ViewModel commands
         RefreshMenuItem.Command = _mainViewModel.RefreshCommand;
+        CutMenuItem.Command = _mainViewModel.CutCommand;
+        CopyMenuItem.Command = _mainViewModel.CopyCommand;
+        PasteMenuItem.Command = _mainViewModel.PasteCommand;
+        DeleteMenuItem.Command = _mainViewModel.DeleteCommand;
         ListViewMenuItem.Command = _mainViewModel.SetViewModeCommand;
         ListViewMenuItem.CommandParameter = "List";
         ThumbnailViewMenuItem.Command = _mainViewModel.SetViewModeCommand;

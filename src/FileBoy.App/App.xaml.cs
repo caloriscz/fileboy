@@ -64,6 +64,7 @@ public partial class App : Application
         services.AddSingleton<IFFmpegManager, FFmpegManager>();
         services.AddSingleton<IVideoThumbnailService, VideoThumbnailService>();
         services.AddSingleton<IThumbnailService, ThumbnailService>();
+        services.AddSingleton<IClipboardService, ClipboardService>();
 
         // Page navigation service
         services.AddSingleton<Services.PageNavigationService>();

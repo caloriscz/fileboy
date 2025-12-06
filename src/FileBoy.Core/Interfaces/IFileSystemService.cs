@@ -35,4 +35,30 @@ public interface IFileSystemService
     /// </summary>
     /// <returns>Collection of drive root paths.</returns>
     IEnumerable<string> GetDrives();
+
+    /// <summary>
+    /// Copies files and directories to a destination path.
+    /// </summary>
+    /// <param name="sourcePaths">Source file/directory paths.</param>
+    /// <param name="destinationPath">Destination directory path.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Task representing the async operation.</returns>
+    Task CopyFilesAsync(IEnumerable<string> sourcePaths, string destinationPath, CancellationToken ct = default);
+
+    /// <summary>
+    /// Moves files and directories to a destination path.
+    /// </summary>
+    /// <param name="sourcePaths">Source file/directory paths.</param>
+    /// <param name="destinationPath">Destination directory path.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Task representing the async operation.</returns>
+    Task MoveFilesAsync(IEnumerable<string> sourcePaths, string destinationPath, CancellationToken ct = default);
+
+    /// <summary>
+    /// Deletes files and directories.
+    /// </summary>
+    /// <param name="paths">File/directory paths to delete.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Task representing the async operation.</returns>
+    Task DeleteFilesAsync(IEnumerable<string> paths, CancellationToken ct = default);
 }

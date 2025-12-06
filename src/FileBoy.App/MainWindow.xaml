@@ -22,6 +22,13 @@
                 <Separator/>
                 <MenuItem Header="E_xit" Click="Exit_Click" InputGestureText="Alt+F4"/>
             </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem x:Name="CutMenuItem" Header="Cu_t" InputGestureText="Ctrl+X"/>
+                <MenuItem x:Name="CopyMenuItem" Header="_Copy" InputGestureText="Ctrl+C"/>
+                <MenuItem x:Name="PasteMenuItem" Header="_Paste" InputGestureText="Ctrl+V"/>
+                <Separator/>
+                <MenuItem x:Name="DeleteMenuItem" Header="_Delete" InputGestureText="Del"/>
+            </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem x:Name="ListViewMenuItem" Header="_List View"/>
                 <MenuItem x:Name="ThumbnailViewMenuItem" Header="_Thumbnail View"/>

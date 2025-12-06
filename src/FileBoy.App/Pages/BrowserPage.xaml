@@ -25,6 +25,10 @@
         <KeyBinding Modifiers="Alt" Key="Right" Command="{Binding GoForwardCommand}"/>
         <KeyBinding Modifiers="Alt" Key="Up" Command="{Binding GoUpCommand}"/>
         <KeyBinding Modifiers="Ctrl" Key="OemComma" Command="{Binding OpenSettingsCommand}"/>
+        <KeyBinding Modifiers="Ctrl" Key="X" Command="{Binding CutCommand}"/>
+        <KeyBinding Modifiers="Ctrl" Key="C" Command="{Binding CopyCommand}"/>
+        <KeyBinding Modifiers="Ctrl" Key="V" Command="{Binding PasteCommand}"/>
+        <KeyBinding Key="Delete" Command="{Binding DeleteCommand}"/>
     </Page.InputBindings>
     
     <Grid>
@@ -128,6 +132,7 @@
             <DataGrid x:Name="FileListGrid"
                       ItemsSource="{Binding Items}"
                       SelectedItem="{Binding SelectedItem}"
+                      SelectionChanged="FileListGrid_SelectionChanged"
                       AutoGenerateColumns="False"
                       IsReadOnly="True"
                       SelectionMode="Extended"
@@ -142,6 +147,12 @@
                       MouseDoubleClick="FileListGrid_MouseDoubleClick">
                 <DataGrid.ContextMenu>
                     <ContextMenu>
+                        <MenuItem Header="Cut" Command="{Binding CutCommand}" InputGestureText="Ctrl+X"/>
+                        <MenuItem Header="Copy" Command="{Binding CopyCommand}" InputGestureText="Ctrl+C"/>
+                        <MenuItem Header="Paste" Command="{Binding PasteCommand}" InputGestureText="Ctrl+V"/>
+                        <Separator/>
+                        <MenuItem Header="Delete" Command="{Binding DeleteCommand}" InputGestureText="Del"/>
+                        <Separator/>
                         <MenuItem Header="Copy Full Path" Command="{Binding CopyFullPathCommand}"/>
                         <Separator/>
                         <MenuItem Header="Open" Command="{Binding OpenSelectedItemCommand}"/>
@@ -175,6 +186,8 @@
             <ListBox x:Name="ThumbnailList"
                      ItemsSource="{Binding Items}"
                      SelectedItem="{Binding SelectedItem}"
+                     SelectionChanged="ThumbnailList_SelectionChanged"
+                     SelectionMode="Extended"
                      Background="White"
                      BorderThickness="0"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -182,6 +195,12 @@
                      MouseDoubleClick="ThumbnailList_MouseDoubleClick">
                 <ListBox.ContextMenu>
                     <ContextMenu>
+                        <MenuItem Header="Cut" Command="{Binding CutCommand}" InputGestureText="Ctrl+X"/>
+                        <MenuItem Header="Copy" Command="{Binding CopyCommand}" InputGestureText="Ctrl+C"/>
+                        <MenuItem Header="Paste" Command="{Binding PasteCommand}" InputGestureText="Ctrl+V"/>
+                        <Separator/>
+                        <MenuItem Header="Delete" Command="{Binding DeleteCommand}" InputGestureText="Del"/>
+                        <Separator/>
                         <MenuItem Header="Copy Full Path" Command="{Binding CopyFullPathCommand}"/>
                         <Separator/>
                         <MenuItem Header="Open" Command="{Binding OpenSelectedItemCommand}"/>

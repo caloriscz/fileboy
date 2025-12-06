@@ -54,4 +54,22 @@ public partial class BrowserPage : Page
         // Save the new preview panel width when user finishes dragging
         ViewModel.PreviewPanelWidth = PreviewColumn.ActualWidth;
     }
+
+    private void FileListGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // Sync selected items to ViewModel for multi-selection support
+        if (sender is DataGrid grid)
+        {
+            ViewModel.SelectedItems = grid.SelectedItems;
+        }
+    }
+
+    private void ThumbnailList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        // Sync selected items to ViewModel for multi-selection support
+        if (sender is ListBox listBox)
+        {
+            ViewModel.SelectedItems = listBox.SelectedItems;
+        }
+    }
 }
