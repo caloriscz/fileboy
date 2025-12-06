@@ -499,6 +499,46 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
+    [RelayCommand]
+    private async Task NewFolderAsync()
+    {
+        try
+        {
+            var dialog = new Views.NewFolderDialog
+            {
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                IsLoading = true;
+                StatusText = $"Creating folder '{dialog.FolderName}'...";
+
+                var createdPath = await _fileSystemService.CreateFolderAsync(CurrentPath, dialog.FolderName);
+                
+                StatusText = $"Created folder: {Path.GetFileName(createdPath)}";
+                _logger.LogInformation("Created folder: {Path}", createdPath);
+
+                // Refresh to show the new folder
+                await RefreshAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create folder");
+            StatusText = "Failed to create folder";
+            System.Windows.MessageBox.Show(
+                $"Failed to create folder: {ex.Message}",
+                "Create Folder Error",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
     private List<string> GetSelectedPaths()
     {
         if (SelectedItems != null && SelectedItems.Count > 0)

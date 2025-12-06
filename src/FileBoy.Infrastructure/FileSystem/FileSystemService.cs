@@ -345,4 +345,33 @@ public sealed class FileSystemService : IFileSystemService
 
         return dirPath;
     }
+
+    /// <inheritdoc />
+    public async Task<string> CreateFolderAsync(string parentPath, string folderName, CancellationToken ct = default)
+    {
+        _logger.LogInformation("Creating folder '{Name}' in {Parent}", folderName, parentPath);
+
+        return await Task.Run(() =>
+        {
+            try
+            {
+                var folderPath = Path.Combine(parentPath, folderName);
+                
+                // Handle name conflicts by adding (1), (2), etc.
+                folderPath = GetUniqueDirectoryPath(folderPath);
+                
+                Directory.CreateDirectory(folderPath);
+                
+                var actualName = Path.GetFileName(folderPath);
+                _logger.LogInformation("Created folder: {Path}", folderPath);
+                
+                return folderPath;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create folder '{Name}' in {Parent}", folderName, parentPath);
+                throw;
+            }
+        }, ct);
+    }
 }

@@ -61,4 +61,13 @@ public interface IFileSystemService
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Task representing the async operation.</returns>
     Task DeleteFilesAsync(IEnumerable<string> paths, CancellationToken ct = default);
+
+    /// <summary>
+    /// Creates a new folder at the specified path.
+    /// </summary>
+    /// <param name="parentPath">Parent directory path.</param>
+    /// <param name="folderName">Name of the new folder.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Full path of the created folder.</returns>
+    Task<string> CreateFolderAsync(string parentPath, string folderName, CancellationToken ct = default);
 }

@@ -18,6 +18,8 @@
         <!-- Menu Bar -->
         <Menu Grid.Row="0" Background="#f0f0f0" Padding="2">
             <MenuItem Header="_File">
+                <MenuItem x:Name="NewFolderMenuItem" Header="_New Folder" InputGestureText="Ctrl+Shift+N"/>
+                <Separator/>
                 <MenuItem x:Name="RefreshMenuItem" Header="_Refresh" InputGestureText="F5"/>
                 <Separator/>
                 <MenuItem Header="E_xit" Click="Exit_Click" InputGestureText="Alt+F4"/>

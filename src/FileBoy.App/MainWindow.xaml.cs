@@ -28,6 +28,7 @@ public partial class MainWindow : Window
         _navigationService.SetFrame(MainFrame);
         
         // Bind menu items to ViewModel commands
+        NewFolderMenuItem.Command = _mainViewModel.NewFolderCommand;
         RefreshMenuItem.Command = _mainViewModel.RefreshCommand;
         CutMenuItem.Command = _mainViewModel.CutCommand;
         CopyMenuItem.Command = _mainViewModel.CopyCommand;
