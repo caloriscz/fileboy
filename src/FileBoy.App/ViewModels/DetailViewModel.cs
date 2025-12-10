@@ -172,7 +172,6 @@ public partial class DetailViewModel : ObservableObject
     [RelayCommand]
     private void ToggleCropMode()
     {
-        MessageBox.Show($"Crop mode clicked! Current: {IsCropMode}", "Debug", MessageBoxButton.OK, MessageBoxImage.Information);
         IsCropMode = !IsCropMode;
         _logger.LogInformation("Crop mode toggled: {CropMode}", IsCropMode);
         if (!IsCropMode)

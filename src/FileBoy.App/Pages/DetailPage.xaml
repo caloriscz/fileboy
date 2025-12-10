@@ -112,9 +112,9 @@
                     <!-- Selection rectangle -->
                     <Rectangle x:Name="SelectionRect"
                                Stroke="Yellow"
-                               StrokeThickness="3"
+                               StrokeThickness="1"
                                StrokeDashArray="5,3"
-                               Fill="#30FFFF00"
+                               Fill="#10FFFF00"
                                Visibility="Collapsed"/>
                 </Canvas>
             </Grid>
