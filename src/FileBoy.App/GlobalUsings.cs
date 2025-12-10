@@ -11,3 +11,5 @@ global using ListBox = System.Windows.Controls.ListBox;
 global using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 global using Key = System.Windows.Input.Key;
 global using MouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
+global using MouseEventArgs = System.Windows.Input.MouseEventArgs;
+global using Point = System.Windows.Point;

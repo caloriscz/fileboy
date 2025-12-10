@@ -65,6 +65,7 @@ public partial class App : Application
         services.AddSingleton<IThumbnailService, ThumbnailService>();
         services.AddSingleton<IClipboardService, ClipboardService>();
         services.AddSingleton<IFolderHistoryService, FolderHistoryService>();
+        services.AddSingleton<IImageEditorService, ImageEditorService>();
 
         // Page navigation service
         services.AddSingleton<Services.PageNavigationService>();

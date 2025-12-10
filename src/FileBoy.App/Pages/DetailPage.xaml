@@ -59,6 +59,26 @@
             <Button Command="{Binding ZoomFitCommand}" ToolTip="Fit to Window (0)" Padding="8,4">
                 <TextBlock Text="⊡" FontSize="14" Foreground="White"/>
             </Button>
+            <Separator/>
+            <Button Command="{Binding ToggleCropModeCommand}" ToolTip="Toggle Crop Mode" Padding="8,4">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsCropMode}" Value="True">
+                                <Setter Property="Background" Value="#0078D4"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <TextBlock Text="✂ Crop" FontSize="12" Foreground="White"/>
+            </Button>
+            <Button Command="{Binding CropImageCommand}" 
+                    IsEnabled="{Binding HasCropSelection}"
+                    ToolTip="Apply Crop" 
+                    Padding="8,4">
+                <TextBlock Text="✓ Apply" FontSize="12" Foreground="White"/>
+            </Button>
         </ToolBar>
         
         <!-- Image Display -->
@@ -68,14 +88,35 @@
                       Background="#1e1e1e"
                       PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
             <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Image Source="{Binding ImageSource}"
+                <Grid.LayoutTransform>
+                    <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}"/>
+                </Grid.LayoutTransform>
+                
+                <Image x:Name="MainImage"
+                       Source="{Binding ImageSource}"
                        Stretch="None"
                        RenderTransformOrigin="0.5,0.5"
-                       RenderOptions.BitmapScalingMode="HighQuality">
-                    <Image.LayoutTransform>
-                        <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}"/>
-                    </Image.LayoutTransform>
-                </Image>
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       MouseLeftButtonDown="Image_MouseLeftButtonDown"
+                       MouseMove="Image_MouseMove"
+                       MouseLeftButtonUp="Image_MouseLeftButtonUp"/>
+                
+                <!-- Crop Selection Rectangle -->
+                <Canvas x:Name="CropCanvas"
+                        Background="Transparent"
+                        IsHitTestVisible="False"
+                        Visibility="{Binding IsCropMode, Converter={StaticResource BoolToVisibilityConverter}}"
+                        Width="{Binding ActualWidth, ElementName=MainImage}"
+                        Height="{Binding ActualHeight, ElementName=MainImage}">
+                    
+                    <!-- Selection rectangle -->
+                    <Rectangle x:Name="SelectionRect"
+                               Stroke="Yellow"
+                               StrokeThickness="3"
+                               StrokeDashArray="5,3"
+                               Fill="#30FFFF00"
+                               Visibility="Collapsed"/>
+                </Canvas>
             </Grid>
         </ScrollViewer>
         
@@ -83,6 +124,9 @@
         <StatusBar Grid.Row="2" Background="#2d2d2d">
             <StatusBarItem>
                 <TextBlock Text="{Binding FileName}" Foreground="#aaa"/>
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Text="{Binding SelectionInfo}" Foreground="#FFA500" Margin="20,0,0,0"/>
             </StatusBarItem>
             <StatusBarItem HorizontalAlignment="Right">
                 <TextBlock Text="{Binding ImageInfo}" Foreground="#aaa"/>
