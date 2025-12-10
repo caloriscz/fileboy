@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Windows;
 using FileBoy.App.ViewModels;
 using FileBoy.Core.Interfaces;
 using FileBoy.Infrastructure.FileSystem;
@@ -17,7 +16,7 @@ public partial class App : Application
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override void OnStartup(System.Windows.StartupEventArgs e)
     {
         base.OnStartup(e);
 
@@ -65,6 +64,7 @@ public partial class App : Application
         services.AddSingleton<IVideoThumbnailService, VideoThumbnailService>();
         services.AddSingleton<IThumbnailService, ThumbnailService>();
         services.AddSingleton<IClipboardService, ClipboardService>();
+        services.AddSingleton<IFolderHistoryService, FolderHistoryService>();
 
         // Page navigation service
         services.AddSingleton<Services.PageNavigationService>();
@@ -74,12 +74,13 @@ public partial class App : Application
         services.AddSingleton<MainViewModel>();
         services.AddTransient<DetailViewModel>();
         services.AddTransient<SettingsViewModel>();
+        services.AddTransient<CopyMoveToFolderViewModel>();
 
         // Views
         services.AddSingleton<MainWindow>();
     }
 
-    protected override void OnExit(ExitEventArgs e)
+    protected override void OnExit(System.Windows.ExitEventArgs e)
     {
         Log.Information("FileBoy shutting down");
         Log.CloseAndFlush();

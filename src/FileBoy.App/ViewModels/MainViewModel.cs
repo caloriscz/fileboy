@@ -28,6 +28,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IVideoThumbnailService _videoThumbnailService;
     private readonly IFFmpegManager _ffmpegManager;
     private readonly IClipboardService _clipboardService;
+    private readonly IFolderHistoryService _folderHistoryService;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MainViewModel> _logger;
     private CancellationTokenSource? _thumbnailCts;
@@ -41,6 +42,7 @@ public partial class MainViewModel : ObservableObject
         IVideoThumbnailService videoThumbnailService,
         IFFmpegManager ffmpegManager,
         IClipboardService clipboardService,
+        IFolderHistoryService folderHistoryService,
         IServiceProvider serviceProvider,
         ILogger<MainViewModel> logger)
     {
@@ -52,6 +54,7 @@ public partial class MainViewModel : ObservableObject
         _videoThumbnailService = videoThumbnailService;
         _ffmpegManager = ffmpegManager;
         _clipboardService = clipboardService;
+        _folderHistoryService = folderHistoryService;
         _serviceProvider = serviceProvider;
         _logger = logger;
 
@@ -490,6 +493,78 @@ public partial class MainViewModel : ObservableObject
             System.Windows.MessageBox.Show(
                 $"Failed to delete items: {ex.Message}",
                 "Delete Error",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Error);
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task CopyToFolderAsync()
+    {
+        await PerformCopyMoveToFolderAsync(CopyMoveOperation.Copy);
+    }
+
+    [RelayCommand]
+    private async Task MoveToFolderAsync()
+    {
+        await PerformCopyMoveToFolderAsync(CopyMoveOperation.Move);
+    }
+
+    private async Task PerformCopyMoveToFolderAsync(CopyMoveOperation operation)
+    {
+        var selectedPaths = GetSelectedPaths();
+        if (selectedPaths.Count == 0)
+            return;
+
+        try
+        {
+            // Create and show dialog
+            var viewModel = _serviceProvider.GetRequiredService<CopyMoveToFolderViewModel>();
+            viewModel.Reset();
+            viewModel.Operation = operation;
+
+            var dialog = new Views.CopyMoveToFolderDialog(viewModel)
+            {
+                Owner = System.Windows.Application.Current.MainWindow
+            };
+
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            IsLoading = true;
+            var operationName = operation == CopyMoveOperation.Copy ? "Copying" : "Moving";
+            StatusText = $"{operationName} {selectedPaths.Count} item(s) to {viewModel.DestinationFolder}...";
+
+            if (operation == CopyMoveOperation.Copy)
+            {
+                await _fileSystemService.CopyFilesAsync(selectedPaths, viewModel.DestinationFolder);
+                StatusText = $"Successfully copied {selectedPaths.Count} item(s)";
+                _logger.LogInformation("Copied {Count} items to {Destination}", selectedPaths.Count, viewModel.DestinationFolder);
+            }
+            else
+            {
+                await _fileSystemService.MoveFilesAsync(selectedPaths, viewModel.DestinationFolder);
+                StatusText = $"Successfully moved {selectedPaths.Count} item(s)";
+                _logger.LogInformation("Moved {Count} items to {Destination}", selectedPaths.Count, viewModel.DestinationFolder);
+            }
+
+            // Refresh the current directory (especially important for move)
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            var operationName = operation == CopyMoveOperation.Copy ? "copy" : "move";
+            _logger.LogError(ex, "Failed to {Operation} items", operationName);
+            StatusText = $"Failed to {operationName} items";
+            System.Windows.MessageBox.Show(
+                $"Failed to {operationName} items: {ex.Message}",
+                $"{char.ToUpper(operationName[0]) + operationName.Substring(1)} Error",
                 System.Windows.MessageBoxButton.OK,
                 System.Windows.MessageBoxImage.Error);
         }

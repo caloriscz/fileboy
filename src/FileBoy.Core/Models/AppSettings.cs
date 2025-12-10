@@ -46,4 +46,9 @@ public sealed class AppSettings
     /// Preview panel width in pixels.
     /// </summary>
     public double PreviewPanelWidth { get; set; } = 400;
+
+    /// <summary>
+    /// Recently used folders for copy/move operations (most recent first).
+    /// </summary>
+    public List<string> RecentFolders { get; set; } = [];
 }

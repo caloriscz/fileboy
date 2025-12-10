@@ -155,6 +155,9 @@
                         <MenuItem Header="Copy" Command="{Binding CopyCommand}" InputGestureText="Ctrl+C"/>
                         <MenuItem Header="Paste" Command="{Binding PasteCommand}" InputGestureText="Ctrl+V"/>
                         <Separator/>
+                        <MenuItem Header="Copy to Folder..." Command="{Binding CopyToFolderCommand}"/>
+                        <MenuItem Header="Move to Folder..." Command="{Binding MoveToFolderCommand}"/>
+                        <Separator/>
                         <MenuItem Header="Rename" Command="{Binding RenameCommand}" InputGestureText="F2"/>
                         <MenuItem Header="Delete" Command="{Binding DeleteCommand}" InputGestureText="Del"/>
                         <Separator/>
@@ -205,6 +208,9 @@
                         <MenuItem Header="Cut" Command="{Binding CutCommand}" InputGestureText="Ctrl+X"/>
                         <MenuItem Header="Copy" Command="{Binding CopyCommand}" InputGestureText="Ctrl+C"/>
                         <MenuItem Header="Paste" Command="{Binding PasteCommand}" InputGestureText="Ctrl+V"/>
+                        <Separator/>
+                        <MenuItem Header="Copy to Folder..." Command="{Binding CopyToFolderCommand}"/>
+                        <MenuItem Header="Move to Folder..." Command="{Binding MoveToFolderCommand}"/>
                         <Separator/>
                         <MenuItem Header="Rename" Command="{Binding RenameCommand}" InputGestureText="F2"/>
                         <MenuItem Header="Delete" Command="{Binding DeleteCommand}" InputGestureText="Del"/>

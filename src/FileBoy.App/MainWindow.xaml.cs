@@ -33,6 +33,8 @@ public partial class MainWindow : Window
         CutMenuItem.Command = _mainViewModel.CutCommand;
         CopyMenuItem.Command = _mainViewModel.CopyCommand;
         PasteMenuItem.Command = _mainViewModel.PasteCommand;
+        CopyToFolderMenuItem.Command = _mainViewModel.CopyToFolderCommand;
+        MoveToFolderMenuItem.Command = _mainViewModel.MoveToFolderCommand;
         RenameMenuItem.Command = _mainViewModel.RenameCommand;
         DeleteMenuItem.Command = _mainViewModel.DeleteCommand;
         ListViewMenuItem.Command = _mainViewModel.SetViewModeCommand;
