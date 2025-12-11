@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Resize Image" 
-        Height="280" 
+        Height="300" 
         Width="400"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize"
@@ -14,6 +14,7 @@
     
     <Grid Margin="20">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -98,13 +99,10 @@
                   Grid.Row="4"
                   Content="Keep aspect ratio"
                   IsChecked="True"
-                  VerticalAlignment="Top"
-                  Checked="KeepAspectRatioCheckBox_Changed"
-                  Unchecked="KeepAspectRatioCheckBox_Changed"
-                  Margin="0,0,0,20"/>
+                  Margin="0,5,0,0"/>
         
         <!-- Buttons -->
-        <StackPanel Grid.Row="5" 
+        <StackPanel Grid.Row="6" 
                     Orientation="Horizontal" 
                     HorizontalAlignment="Right">
             <Button Content="Resize" 
