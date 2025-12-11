@@ -53,6 +53,11 @@ public sealed class AppSettings
     public ImageDisplayMode ImageDisplayMode { get; set; } = ImageDisplayMode.FitIfLarger;
 
     /// <summary>
+    /// Video seek interval in seconds (Left/Right arrow keys).
+    /// </summary>
+    public int VideoSeekInterval { get; set; } = 5;
+
+    /// <summary>
     /// Recently used folders for copy/move operations (most recent first).
     /// </summary>
     public List<string> RecentFolders { get; set; } = [];

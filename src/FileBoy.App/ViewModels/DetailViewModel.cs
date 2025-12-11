@@ -464,6 +464,40 @@ public partial class DetailViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void SeekBackward()
+    {
+        if (!IsVideo || VideoDuration == TimeSpan.Zero)
+            return;
+
+        var interval = TimeSpan.FromSeconds(_settingsService.Settings.VideoSeekInterval);
+        var newPosition = VideoPosition - interval;
+        if (newPosition < TimeSpan.Zero)
+            newPosition = TimeSpan.Zero;
+
+        VideoPosition = newPosition;
+        OnSeekRequested?.Invoke(newPosition);
+        _logger.LogDebug("Seeking backward to {Position}", newPosition);
+    }
+
+    [RelayCommand]
+    private void SeekForward()
+    {
+        if (!IsVideo || VideoDuration == TimeSpan.Zero)
+            return;
+
+        var interval = TimeSpan.FromSeconds(_settingsService.Settings.VideoSeekInterval);
+        var newPosition = VideoPosition + interval;
+        if (newPosition > VideoDuration)
+            newPosition = VideoDuration;
+
+        VideoPosition = newPosition;
+        OnSeekRequested?.Invoke(newPosition);
+        _logger.LogDebug("Seeking forward to {Position}", newPosition);
+    }
+
+    public Action<TimeSpan>? OnSeekRequested { get; set; }
+
+    [RelayCommand]
     private void OpenInAssociatedApp()
     {
         if (string.IsNullOrEmpty(FilePath))

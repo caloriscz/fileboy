@@ -35,6 +35,8 @@ public partial class SettingsViewModel : ObservableObject
                 SettingType.Slider, nameof(ThumbnailSize), minValue: 50, maxValue: 600),
             new SettingItem("Appearance", "Image Display Mode", "How images are displayed in the viewer (Original size, Fit to screen, or Fit if larger)", 
                 SettingType.Enum, nameof(ImageDisplayMode), typeof(ImageDisplayMode)),
+            new SettingItem("General", "Video Seek Interval", "Seconds to skip when using Left/Right arrow keys in video player", 
+                SettingType.Enum, nameof(VideoSeekInterval), typeof(int)),
         ];
         
         FilteredSettings = new ObservableCollection<SettingItem>(AllSettings);
@@ -70,9 +72,13 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private ImageDisplayMode _imageDisplayMode;
 
+    [ObservableProperty]
+    private int _videoSeekInterval;
+
     public Array StartupModeValues => Enum.GetValues(typeof(WindowStartupMode));
     public Array DefaultViewModeValues => Enum.GetValues(typeof(ViewMode));
     public Array ImageDisplayModeValues => Enum.GetValues(typeof(ImageDisplayMode));
+    public int[] VideoSeekIntervalValues => [5, 10, 15, 20, 30, 45, 60];
 
     partial void OnSelectedCategoryChanged(SettingsCategory? value)
     {
@@ -115,6 +121,7 @@ public partial class SettingsViewModel : ObservableObject
         DefaultViewMode = settings.DefaultView;
         ThumbnailSize = settings.ThumbnailSize;
         ImageDisplayMode = settings.ImageDisplayMode;
+        VideoSeekInterval = settings.VideoSeekInterval;
     }
 
     [RelayCommand]
@@ -125,6 +132,7 @@ public partial class SettingsViewModel : ObservableObject
         settings.DefaultView = DefaultViewMode;
         settings.ThumbnailSize = ThumbnailSize;
         settings.ImageDisplayMode = ImageDisplayMode;
+        settings.VideoSeekInterval = VideoSeekInterval;
         await _settingsService.SaveAsync();
     }
 
@@ -135,6 +143,7 @@ public partial class SettingsViewModel : ObservableObject
         DefaultViewMode = ViewMode.List;
         ThumbnailSize = 120;
         ImageDisplayMode = ImageDisplayMode.FitIfLarger;
+        VideoSeekInterval = 5;
     }
 }
 

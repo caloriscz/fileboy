@@ -14,8 +14,10 @@
         <KeyBinding Key="Escape" Command="{Binding GoBackToBrowserCommand}"/>
         <KeyBinding Key="Back" Command="{Binding GoBackToBrowserCommand}"/>
         <KeyBinding Key="Backspace" Command="{Binding GoBackToBrowserCommand}"/>
-        <KeyBinding Key="Left" Command="{Binding PreviousCommand}"/>
-        <KeyBinding Key="Right" Command="{Binding NextCommand}"/>
+        <KeyBinding Key="PageUp" Command="{Binding PreviousCommand}"/>
+        <KeyBinding Key="PageDown" Command="{Binding NextCommand}"/>
+        <KeyBinding Key="Left" Command="{Binding SeekBackwardCommand}"/>
+        <KeyBinding Key="Right" Command="{Binding SeekForwardCommand}"/>
         <KeyBinding Key="Add" Command="{Binding ZoomInCommand}"/>
         <KeyBinding Key="OemPlus" Command="{Binding ZoomInCommand}"/>
         <KeyBinding Key="Subtract" Command="{Binding ZoomOutCommand}"/>
@@ -37,10 +39,10 @@
                 <TextBlock Text="← Back" FontSize="12" Foreground="White"/>
             </Button>
             <Separator/>
-            <Button Command="{Binding PreviousCommand}" ToolTip="Previous (Left Arrow)" Padding="8,4">
+            <Button Command="{Binding PreviousCommand}" ToolTip="Previous File (Page Up)" Padding="8,4">
                 <TextBlock Text="◀" FontSize="14" Foreground="White"/>
             </Button>
-            <Button Command="{Binding NextCommand}" ToolTip="Next (Right Arrow)" Padding="8,4">
+            <Button Command="{Binding NextCommand}" ToolTip="Next File (Page Down)" Padding="8,4">
                 <TextBlock Text="▶" FontSize="14" Foreground="White"/>
             </Button>
             <Separator Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}"/>

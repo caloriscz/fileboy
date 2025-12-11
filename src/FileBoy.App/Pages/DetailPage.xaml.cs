@@ -43,6 +43,12 @@ public partial class DetailPage : Page
         };
         _videoPositionTimer.Tick += VideoPositionTimer_Tick;
         
+        // Setup video seek callback
+        viewModel.OnSeekRequested = (position) =>
+        {
+            VideoPlayer.Position = position;
+        };
+        
         // Cleanup on unload
         Unloaded += (s, e) => _videoPositionTimer?.Stop();
     }
