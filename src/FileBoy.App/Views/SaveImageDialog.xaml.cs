@@ -5,7 +5,7 @@ using System.Windows.Controls;
 namespace FileBoy.App.Views;
 
 /// <summary>
-/// Dialog for saving cropped images with file name input and overwrite warning.
+/// Dialog for saving edited images with file name input and overwrite warning.
 /// </summary>
 public partial class SaveImageDialog : Window
 {
@@ -15,17 +15,24 @@ public partial class SaveImageDialog : Window
     public string FileName { get; private set; }
     public string FullPath { get; private set; }
 
-    public SaveImageDialog(string originalPath)
+    public SaveImageDialog(string originalPath, string? title = null)
     {
         InitializeComponent();
         
         _originalPath = originalPath;
         _directory = Path.GetDirectoryName(originalPath) ?? string.Empty;
         
-        // Suggest a default name based on original
+        // Set custom title if provided
+        if (!string.IsNullOrEmpty(title))
+        {
+            Title = title;
+            TitleTextBlock.Text = title;
+        }
+        
+        // Suggest a default name with numeric suffix
         var nameWithoutExt = Path.GetFileNameWithoutExtension(originalPath);
         var extension = Path.GetExtension(originalPath);
-        var suggestedName = $"{nameWithoutExt}_cropped{extension}";
+        var suggestedName = GenerateUniqueFileName(nameWithoutExt, extension);
         
         FileNameTextBox.Text = suggestedName;
         FileNameTextBox.SelectAll();
@@ -35,6 +42,36 @@ public partial class SaveImageDialog : Window
         FullPath = Path.Combine(_directory, suggestedName);
         
         UpdateWarning();
+    }
+
+    private string GenerateUniqueFileName(string baseName, string extension)
+    {
+        var fileName = $"{baseName}{extension}";
+        var fullPath = Path.Combine(_directory, fileName);
+        
+        // If original name doesn't exist, suggest it
+        if (!File.Exists(fullPath))
+        {
+            return fileName;
+        }
+        
+        // Try (2), (3), etc.
+        var counter = 2;
+        while (counter < 1000)
+        {
+            fileName = $"{baseName} ({counter}){extension}";
+            fullPath = Path.Combine(_directory, fileName);
+            
+            if (!File.Exists(fullPath))
+            {
+                return fileName;
+            }
+            
+            counter++;
+        }
+        
+        // Fallback to timestamp if we somehow reach 1000 files
+        return $"{baseName} ({DateTime.Now:yyyyMMdd_HHmmss}){extension}";
     }
 
     private void FileNameTextBox_TextChanged(object sender, TextChangedEventArgs e)

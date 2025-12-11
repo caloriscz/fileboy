@@ -1,0 +1,181 @@
+<Window x:Class="FileBoy.App.Views.ResizeImageDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Resize Image" 
+        Height="280" 
+        Width="400"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="#f5f5f5">
+    
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Title -->
+        <TextBlock Grid.Row="0" 
+                   Text="Resize Image" 
+                   FontSize="16" 
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,15"/>
+        
+        <!-- Original size info -->
+        <TextBlock Grid.Row="1" 
+                   x:Name="OriginalSizeText"
+                   Text="Original size: 1920 × 1080 px" 
+                   FontSize="12"
+                   Foreground="#666666"
+                   Margin="0,0,0,15"/>
+        
+        <!-- Width Input -->
+        <Grid Grid.Row="2" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="30"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Column="0" 
+                       Text="Width:" 
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+            
+            <TextBox x:Name="WidthTextBox"
+                     Grid.Column="1"
+                     Padding="8"
+                     FontSize="13"
+                     BorderBrush="#CCCCCC"
+                     BorderThickness="1"
+                     TextChanged="WidthTextBox_TextChanged"/>
+            
+            <TextBlock Grid.Column="2" 
+                       Text="px" 
+                       VerticalAlignment="Center"
+                       Margin="5,0,0,0"
+                       Foreground="#666666"/>
+        </Grid>
+        
+        <!-- Height Input -->
+        <Grid Grid.Row="3" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="80"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="30"/>
+            </Grid.ColumnDefinitions>
+            
+            <TextBlock Grid.Column="0" 
+                       Text="Height:" 
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+            
+            <TextBox x:Name="HeightTextBox"
+                     Grid.Column="1"
+                     Padding="8"
+                     FontSize="13"
+                     BorderBrush="#CCCCCC"
+                     BorderThickness="1"
+                     TextChanged="HeightTextBox_TextChanged"/>
+            
+            <TextBlock Grid.Column="2" 
+                       Text="px" 
+                       VerticalAlignment="Center"
+                       Margin="5,0,0,0"
+                       Foreground="#666666"/>
+        </Grid>
+        
+        <!-- Keep Aspect Ratio Checkbox -->
+        <CheckBox x:Name="KeepAspectRatioCheckBox"
+                  Grid.Row="4"
+                  Content="Keep aspect ratio"
+                  IsChecked="True"
+                  VerticalAlignment="Top"
+                  Checked="KeepAspectRatioCheckBox_Changed"
+                  Unchecked="KeepAspectRatioCheckBox_Changed"
+                  Margin="0,0,0,20"/>
+        
+        <!-- Buttons -->
+        <StackPanel Grid.Row="5" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right">
+            <Button Content="Resize" 
+                    Width="80" 
+                    Height="32"
+                    IsDefault="True"
+                    Click="ResizeButton_Click"
+                    Margin="0,0,10,0"
+                    Background="#0078D4"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#0078D4"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" 
+                                            CornerRadius="3"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" 
+                                                        VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#005A9E"/>
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter Property="Background" Value="#CCCCCC"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+            </Button>
+            
+            <Button Content="Cancel" 
+                    Width="80" 
+                    Height="32"
+                    IsCancel="True"
+                    Click="CancelButton_Click"
+                    Background="#E1E1E1"
+                    Foreground="#333333"
+                    BorderThickness="0"
+                    Cursor="Hand">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Setter Property="Background" Value="#E1E1E1"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}" 
+                                            CornerRadius="3"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" 
+                                                        VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Background" Value="#D1D1D1"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Button.Style>
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

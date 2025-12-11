@@ -79,6 +79,12 @@
                     Padding="8,4">
                 <TextBlock Text="✓ Apply" FontSize="12" Foreground="White"/>
             </Button>
+            <Separator/>
+            <Button Command="{Binding ResizeImageCommand}" 
+                    ToolTip="Resize Image" 
+                    Padding="8,4">
+                <TextBlock Text="⇔ Resize" FontSize="12" Foreground="White"/>
+            </Button>
         </ToolBar>
         
         <!-- Image Display -->

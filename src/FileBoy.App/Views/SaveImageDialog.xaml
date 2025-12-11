@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Save Cropped Image" 
+        Title="Save Image" 
         Height="220" 
         Width="500"
         WindowStartupLocation="CenterOwner"
@@ -22,8 +22,9 @@
         </Grid.RowDefinitions>
         
         <!-- Title -->
-        <TextBlock Grid.Row="0" 
-                   Text="Save Cropped Image" 
+        <TextBlock x:Name="TitleTextBlock"
+                   Grid.Row="0" 
+                   Text="Save Image" 
                    FontSize="16" 
                    FontWeight="SemiBold"
                    Margin="0,0,0,15"/>

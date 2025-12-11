@@ -79,4 +79,61 @@ public sealed class ImageEditorService : IImageEditorService
             return false;
         }
     }
+
+    /// <inheritdoc />
+    public async Task<bool> ResizeImageAsync(string sourceImagePath, string destinationPath, int width, int height, CancellationToken ct = default)
+    {
+        try
+        {
+            _logger.LogInformation("Resizing image: {Source} to {Destination}, size: {Width}×{Height}", 
+                sourceImagePath, destinationPath, width, height);
+
+            await Task.Run(() =>
+            {
+                ct.ThrowIfCancellationRequested();
+
+                // Load source image
+                var bitmap = new BitmapImage();
+                bitmap.BeginInit();
+                bitmap.UriSource = new Uri(sourceImagePath);
+                bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                bitmap.EndInit();
+                bitmap.Freeze();
+
+                // Create resized bitmap using TransformedBitmap with ScaleTransform
+                var scaleX = (double)width / bitmap.PixelWidth;
+                var scaleY = (double)height / bitmap.PixelHeight;
+                
+                var transform = new ScaleTransform(scaleX, scaleY);
+                var resizedBitmap = new TransformedBitmap(bitmap, transform);
+                resizedBitmap.Freeze();
+
+                // Determine encoder based on file extension
+                BitmapEncoder encoder = Path.GetExtension(destinationPath).ToLowerInvariant() switch
+                {
+                    ".png" => new PngBitmapEncoder(),
+                    ".jpg" or ".jpeg" => new JpegBitmapEncoder { QualityLevel = 95 },
+                    ".bmp" => new BmpBitmapEncoder(),
+                    ".gif" => new GifBitmapEncoder(),
+                    ".tiff" or ".tif" => new TiffBitmapEncoder(),
+                    _ => new PngBitmapEncoder() // Default to PNG
+                };
+
+                encoder.Frames.Add(BitmapFrame.Create(resizedBitmap));
+
+                // Save to file
+                using var fileStream = new FileStream(destinationPath, FileMode.Create);
+                encoder.Save(fileStream);
+
+                _logger.LogInformation("Successfully resized image to {Destination}", destinationPath);
+            }, ct);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to resize image from {Source} to {Destination}", sourceImagePath, destinationPath);
+            return false;
+        }
+    }
 }

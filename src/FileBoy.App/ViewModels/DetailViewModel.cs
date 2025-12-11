@@ -194,7 +194,7 @@ public partial class DetailViewModel : ObservableObject
         try
         {
             // Show save dialog
-            var dialog = new Views.SaveImageDialog(FilePath)
+            var dialog = new Views.SaveImageDialog(FilePath, "Save Cropped Image")
             {
                 Owner = Application.Current.MainWindow
             };
@@ -239,6 +239,77 @@ public partial class DetailViewModel : ObservableObject
             MessageBox.Show(
                 $"Failed to crop image: {ex.Message}",
                 "Crop Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ResizeImageAsync()
+    {
+        if (ImageSource is not BitmapSource bitmap)
+        {
+            _logger.LogWarning("Resize command called without valid image");
+            return;
+        }
+
+        try
+        {
+            // Show resize dialog
+            var dialog = new Views.ResizeImageDialog(bitmap.PixelWidth, bitmap.PixelHeight)
+            {
+                Owner = Application.Current.MainWindow
+            };
+
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            // Show save dialog
+            var saveDialog = new Views.SaveImageDialog(FilePath, "Save Resized Image")
+            {
+                Owner = Application.Current.MainWindow
+            };
+
+            if (saveDialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            // Perform resize
+            var success = await _imageEditorService.ResizeImageAsync(
+                FilePath,
+                saveDialog.FullPath,
+                dialog.NewWidth,
+                dialog.NewHeight);
+
+            if (success)
+            {
+                MessageBox.Show(
+                    $"Image resized successfully to:\n{saveDialog.FullPath}\nNew size: {dialog.NewWidth} × {dialog.NewHeight} px",
+                    "Resize Successful",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                _logger.LogInformation("Successfully resized image to {Path} ({Width}×{Height})", 
+                    saveDialog.FullPath, dialog.NewWidth, dialog.NewHeight);
+            }
+            else
+            {
+                MessageBox.Show(
+                    "Failed to resize image. Please try again.",
+                    "Resize Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during resize operation");
+            MessageBox.Show(
+                $"Failed to resize image: {ex.Message}",
+                "Resize Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
         }
