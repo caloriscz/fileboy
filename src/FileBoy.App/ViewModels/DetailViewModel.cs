@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FileBoy.App.Services;
+using FileBoy.Core.Enums;
 using FileBoy.Core.Interfaces;
 using FileBoy.Core.Models;
 using Microsoft.Extensions.Logging;
@@ -62,6 +64,28 @@ public partial class DetailViewModel : ObservableObject
     [ObservableProperty]
     private double _containerHeight;
 
+    [ObservableProperty]
+    private FileItem? _currentFile;
+
+    [ObservableProperty]
+    private bool _isVideoPlaying;
+
+    [ObservableProperty]
+    private bool _isVideoLoaded;
+
+    [ObservableProperty]
+    private TimeSpan _videoDuration;
+
+    [ObservableProperty]
+    private TimeSpan _videoPosition;
+
+    [ObservableProperty]
+    private bool _isSeekingVideo;
+
+    public bool IsImage => CurrentFile?.IsViewableImage ?? false;
+    public bool IsVideo => CurrentFile?.IsVideo ?? false;
+    public bool IsUnsupportedFile => CurrentFile != null && !CurrentFile.IsViewableMedia;
+
     public bool HasCropSelection => CropSelection.Width > 0 && CropSelection.Height > 0;
 
     partial void OnCropSelectionChanged(Rect value)
@@ -88,30 +112,67 @@ public partial class DetailViewModel : ObservableObject
         return new CropRectangle(rect.X, rect.Y, rect.Width, rect.Height);
     }
 
-    private readonly List<FileItem> _imageFiles = [];
+    private readonly List<FileItem> _allFiles = [];
     private int _currentIndex;
 
     public bool HasPrevious => _currentIndex > 0;
-    public bool HasNext => _currentIndex < _imageFiles.Count - 1;
+    public bool HasNext => _currentIndex < _allFiles.Count - 1;
 
     public void Initialize(FileItem file, IEnumerable<FileItem> allFiles)
     {
-        _imageFiles.Clear();
-        _imageFiles.AddRange(allFiles.Where(f => f.IsViewableImage));
-        _currentIndex = _imageFiles.FindIndex(f => f.FullPath == file.FullPath);
+        _allFiles.Clear();
+        _allFiles.AddRange(allFiles.Where(f => !f.IsDirectory)); // All files except directories
+        _currentIndex = _allFiles.FindIndex(f => f.FullPath == file.FullPath);
         
-        LoadImage(file);
+        LoadFile(file);
     }
 
-    public void LoadImage(FileItem file)
+    public void LoadFile(FileItem file)
     {
         FilePath = file.FullPath;
         FileName = file.Name;
+        CurrentFile = file;
         
-        // Reset crop mode when loading new image
+        // Reset states
         IsCropMode = false;
         CropSelection = Rect.Empty;
+        IsVideoPlaying = false;
+        IsVideoLoaded = false;
+        VideoDuration = TimeSpan.Zero;
+        VideoPosition = TimeSpan.Zero;
+        IsSeekingVideo = false;
+        ImageSource = null;
+        ImageInfo = string.Empty;
         
+        // Notify file type properties
+        OnPropertyChanged(nameof(IsImage));
+        OnPropertyChanged(nameof(IsVideo));
+        OnPropertyChanged(nameof(IsUnsupportedFile));
+        
+        if (file.IsViewableImage)
+        {
+            LoadImage(file);
+        }
+        else if (file.IsVideo)
+        {
+            LoadVideo(file);
+        }
+        else
+        {
+            // Unsupported file - show file info
+            ImageInfo = $"{file.Extension.ToUpperInvariant()} file";
+        }
+
+        OnPropertyChanged(nameof(HasPrevious));
+        OnPropertyChanged(nameof(HasNext));
+        
+        // Notify commands that CanExecute state changed
+        PreviousCommand.NotifyCanExecuteChanged();
+        NextCommand.NotifyCanExecuteChanged();
+    }
+
+    private void LoadImage(FileItem file)
+    {
         try
         {
             var bitmap = new BitmapImage();
@@ -129,15 +190,18 @@ public partial class DetailViewModel : ObservableObject
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error loading image: {Path}", file.FullPath);
             ImageInfo = $"Error loading image: {ex.Message}";
         }
+    }
 
-        OnPropertyChanged(nameof(HasPrevious));
-        OnPropertyChanged(nameof(HasNext));
-        
-        // Notify commands that CanExecute state changed
-        PreviousCommand.NotifyCanExecuteChanged();
-        NextCommand.NotifyCanExecuteChanged();
+    private void LoadVideo(FileItem file)
+    {
+        // Video will be loaded by MediaElement in XAML
+        // Just set info
+        var fileInfo = new System.IO.FileInfo(file.FullPath);
+        ImageInfo = $"{file.Extension.ToUpperInvariant()} - {Core.Extensions.FileExtensions.FormatFileSize(fileInfo.Length)}";
+        _logger.LogInformation("Loading video: {Path}", file.FullPath);
     }
 
     public void UpdateContainerSize(double width, double height)
@@ -199,7 +263,7 @@ public partial class DetailViewModel : ObservableObject
         if (_currentIndex > 0)
         {
             _currentIndex--;
-            LoadImage(_imageFiles[_currentIndex]);
+            LoadFile(_allFiles[_currentIndex]);
             PreviousCommand.NotifyCanExecuteChanged();
             NextCommand.NotifyCanExecuteChanged();
         }
@@ -208,10 +272,10 @@ public partial class DetailViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(HasNext))]
     private void Next()
     {
-        if (_currentIndex < _imageFiles.Count - 1)
+        if (_currentIndex < _allFiles.Count - 1)
         {
             _currentIndex++;
-            LoadImage(_imageFiles[_currentIndex]);
+            LoadFile(_allFiles[_currentIndex]);
             PreviousCommand.NotifyCanExecuteChanged();
             NextCommand.NotifyCanExecuteChanged();
         }
@@ -391,5 +455,50 @@ public partial class DetailViewModel : ObservableObject
             ApplyDisplayMode();
             _logger.LogInformation("Image display mode changed to {Mode}", displayMode);
         }
+    }
+
+    [RelayCommand]
+    private void TogglePlayPause()
+    {
+        IsVideoPlaying = !IsVideoPlaying;
+    }
+
+    [RelayCommand]
+    private void OpenInAssociatedApp()
+    {
+        if (string.IsNullOrEmpty(FilePath))
+            return;
+
+        try
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = FilePath,
+                UseShellExecute = true
+            };
+            Process.Start(psi);
+            _logger.LogInformation("Opened file in associated application: {Path}", FilePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to open file in associated application: {Path}", FilePath);
+            MessageBox.Show(
+                $"Failed to open file: {ex.Message}",
+                "Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    public void OnVideoLoaded()
+    {
+        IsVideoLoaded = true;
+        _logger.LogInformation("Video loaded successfully");
+    }
+
+    public void OnVideoFailed(string error)
+    {
+        _logger.LogError("Video failed to load: {Error}", error);
+        ImageInfo = $"Error loading video: {error}";
     }
 }

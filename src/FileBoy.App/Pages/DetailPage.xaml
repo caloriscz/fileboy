@@ -43,8 +43,11 @@
             <Button Command="{Binding NextCommand}" ToolTip="Next (Right Arrow)" Padding="8,4">
                 <TextBlock Text="▶" FontSize="14" Foreground="White"/>
             </Button>
-            <Separator/>
-            <Button Command="{Binding ZoomOutCommand}" ToolTip="Zoom Out (-)" Padding="8,4">
+            <Separator Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            <Button Command="{Binding ZoomOutCommand}" 
+                    ToolTip="Zoom Out (-)" 
+                    Padding="8,4"
+                    Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Text="−" FontSize="16" Foreground="White"/>
             </Button>
             <TextBlock Text="{Binding ZoomLevel, StringFormat={}{0:P0}}" 
@@ -52,15 +55,27 @@
                        VerticalAlignment="Center" 
                        Margin="8,0"
                        MinWidth="50"
-                       TextAlignment="Center"/>
-            <Button Command="{Binding ZoomInCommand}" ToolTip="Zoom In (+)" Padding="8,4">
+                       TextAlignment="Center"
+                       Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            <Button Command="{Binding ZoomInCommand}" 
+                    ToolTip="Zoom In (+)" 
+                    Padding="8,4"
+                    Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Text="+" FontSize="16" Foreground="White"/>
             </Button>
-            <Button Command="{Binding ZoomFitCommand}" ToolTip="Fit to Window (0)" Padding="8,4">
+            <Button Command="{Binding ZoomFitCommand}" 
+                    ToolTip="Fit to Window (0)" 
+                    Padding="8,4"
+                    Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Text="⊡" FontSize="14" Foreground="White"/>
             </Button>
-            <Separator/>
-            <Button Command="{Binding ToggleCropModeCommand}" ToolTip="Toggle Crop Mode" Padding="8,4">
+            
+            <!-- Image-only controls -->
+            <Separator Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            <Button Command="{Binding ToggleCropModeCommand}" 
+                    ToolTip="Toggle Crop Mode" 
+                    Padding="8,4"
+                    Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Button.Style>
                     <Style TargetType="Button">
                         <Setter Property="Background" Value="Transparent"/>
@@ -76,17 +91,21 @@
             <Button Command="{Binding CropImageCommand}" 
                     IsEnabled="{Binding HasCropSelection}"
                     ToolTip="Apply Crop" 
-                    Padding="8,4">
+                    Padding="8,4"
+                    Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Text="✓ Apply" FontSize="12" Foreground="White"/>
             </Button>
-            <Separator/>
+            <Separator Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}"/>
             <Button Command="{Binding ResizeImageCommand}" 
                     ToolTip="Resize Image" 
-                    Padding="8,4">
+                    Padding="8,4"
+                    Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Text="⇔ Resize" FontSize="12" Foreground="White"/>
             </Button>
-            <Separator/>
-            <Menu Background="Transparent" VerticalAlignment="Center">
+            <Separator Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}"/>
+            <Menu Background="Transparent" 
+                  VerticalAlignment="Center"
+                  Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}">
                 <MenuItem Header="View" Foreground="White" Padding="8,4">
                     <MenuItem Header="Original Size (100%)" 
                               Command="{Binding SetDisplayModeCommand}"
@@ -101,45 +120,170 @@
             </Menu>
         </ToolBar>
         
-        <!-- Image Display -->
-        <ScrollViewer x:Name="ImageScrollViewer"
-                      Grid.Row="1" 
-                      HorizontalScrollBarVisibility="Auto" 
-                      VerticalScrollBarVisibility="Auto"
-                      Background="#1e1e1e"
-                      PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
-            <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
-                <Grid.LayoutTransform>
-                    <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}"/>
-                </Grid.LayoutTransform>
-                
-                <Image x:Name="MainImage"
-                       Source="{Binding ImageSource}"
-                       Stretch="None"
-                       RenderTransformOrigin="0.5,0.5"
-                       RenderOptions.BitmapScalingMode="HighQuality"
-                       MouseLeftButtonDown="Image_MouseLeftButtonDown"
-                       MouseMove="Image_MouseMove"
-                       MouseLeftButtonUp="Image_MouseLeftButtonUp"/>
-                
-                <!-- Crop Selection Rectangle -->
-                <Canvas x:Name="CropCanvas"
-                        Background="Transparent"
-                        IsHitTestVisible="False"
-                        Visibility="{Binding IsCropMode, Converter={StaticResource BoolToVisibilityConverter}}"
-                        Width="{Binding ActualWidth, ElementName=MainImage}"
-                        Height="{Binding ActualHeight, ElementName=MainImage}">
+        <!-- Content Display Area -->
+        <Grid Grid.Row="1" Background="#1e1e1e">
+            <!-- Image Display -->
+            <ScrollViewer x:Name="ImageScrollViewer"
+                          HorizontalScrollBarVisibility="Auto" 
+                          VerticalScrollBarVisibility="Auto"
+                          Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}"
+                          PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
+                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Grid.LayoutTransform>
+                        <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}"/>
+                    </Grid.LayoutTransform>
                     
-                    <!-- Selection rectangle -->
-                    <Rectangle x:Name="SelectionRect"
-                               Stroke="Yellow"
-                               StrokeThickness="1"
-                               StrokeDashArray="5,3"
-                               Fill="#10FFFF00"
-                               Visibility="Collapsed"/>
-                </Canvas>
+                    <Image x:Name="MainImage"
+                           Source="{Binding ImageSource}"
+                           Stretch="None"
+                           RenderTransformOrigin="0.5,0.5"
+                           RenderOptions.BitmapScalingMode="HighQuality"
+                           MouseLeftButtonDown="Image_MouseLeftButtonDown"
+                           MouseMove="Image_MouseMove"
+                           MouseLeftButtonUp="Image_MouseLeftButtonUp"/>
+                    
+                    <!-- Crop Selection Rectangle -->
+                    <Canvas x:Name="CropCanvas"
+                            Background="Transparent"
+                            IsHitTestVisible="False"
+                            Visibility="{Binding IsCropMode, Converter={StaticResource BoolToVisibilityConverter}}"
+                            Width="{Binding ActualWidth, ElementName=MainImage}"
+                            Height="{Binding ActualHeight, ElementName=MainImage}">
+                        
+                        <!-- Selection rectangle -->
+                        <Rectangle x:Name="SelectionRect"
+                                   Stroke="Yellow"
+                                   StrokeThickness="1"
+                                   StrokeDashArray="5,3"
+                                   Fill="#10FFFF00"
+                                   Visibility="Collapsed"/>
+                    </Canvas>
+                </Grid>
+            </ScrollViewer>
+            
+            <!-- Video Display -->
+            <Grid Visibility="{Binding IsVideo, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <MediaElement x:Name="VideoPlayer"
+                              Grid.Row="0"
+                              Source="{Binding FilePath}"
+                              LoadedBehavior="Pause"
+                              UnloadedBehavior="Stop"
+                              ScrubbingEnabled="True"
+                              Volume="0"
+                              Stretch="Uniform"
+                              MediaOpened="VideoPlayer_MediaOpened"
+                              MediaFailed="VideoPlayer_MediaFailed"/>
+                
+                <!-- Video Controls -->
+                <Border Grid.Row="1" 
+                        Background="#2d2d2d" 
+                        Padding="10,8"
+                        BorderBrush="#404040" 
+                        BorderThickness="0,1,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <!-- Progress Slider -->
+                        <Grid Grid.Row="0" Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="50"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Column="0" 
+                                       Text="{Binding VideoPosition, StringFormat='{}{0:mm\\:ss}'}"
+                                       Foreground="#aaa"
+                                       VerticalAlignment="Center"
+                                       FontSize="11"/>
+                            
+                            <Slider x:Name="VideoProgressSlider"
+                                    Grid.Column="1"
+                                    Minimum="0"
+                                    Maximum="{Binding VideoDuration.TotalSeconds}"
+                                    Value="{Binding VideoPosition.TotalSeconds, Mode=OneWay}"
+                                    VerticalAlignment="Center"
+                                    Margin="8,0"
+                                    PreviewMouseDown="VideoProgressSlider_PreviewMouseDown"
+                                    PreviewMouseUp="VideoProgressSlider_PreviewMouseUp"
+                                    ValueChanged="VideoProgressSlider_ValueChanged"
+                                    IsMoveToPointEnabled="True"
+                                    Height="20"/>
+                            
+                            <TextBlock Grid.Column="2" 
+                                       Text="{Binding VideoDuration, StringFormat='{}{0:mm\\:ss}'}"
+                                       Foreground="#aaa"
+                                       VerticalAlignment="Center"
+                                       HorizontalAlignment="Right"
+                                       FontSize="11"/>
+                        </Grid>
+                        
+                        <!-- Playback Buttons -->
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                            <Button x:Name="PlayButton"
+                                    Content="▶ Play" 
+                                    Width="80" 
+                                    Height="32"
+                                    Margin="5,0"
+                                    Click="PlayButton_Click"
+                                    Background="#0078D4"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"/>
+                            <Button x:Name="PauseButton"
+                                    Content="⏸ Pause" 
+                                    Width="80" 
+                                    Height="32"
+                                    Margin="5,0"
+                                    Click="PauseButton_Click"
+                                    Background="#0078D4"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"/>
+                            <Button Content="⏹ Stop" 
+                                    Width="80" 
+                                    Height="32"
+                                    Margin="5,0"
+                                    Click="StopButton_Click"
+                                    Background="#555"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
             </Grid>
-        </ScrollViewer>
+            
+            <!-- Unsupported File Display -->
+            <Grid Visibility="{Binding IsUnsupportedFile, Converter={StaticResource BoolToVisibilityConverter}}"
+                  HorizontalAlignment="Center" 
+                  VerticalAlignment="Center">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <TextBlock Text="Not supported file type" 
+                               FontSize="20" 
+                               Foreground="#999"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,20"/>
+                    <Button Command="{Binding OpenInAssociatedAppCommand}"
+                            Content="Open in Associated Application" 
+                            Width="250" 
+                            Height="40"
+                            Background="#0078D4"
+                            Foreground="White"
+                            BorderThickness="0"
+                            Cursor="Hand"
+                            FontSize="14"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
         
         <!-- Status Bar -->
         <StatusBar Grid.Row="2" Background="#2d2d2d">

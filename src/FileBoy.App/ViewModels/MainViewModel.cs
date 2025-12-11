@@ -205,8 +205,10 @@ public partial class MainViewModel : ObservableObject
 
             StatusText = $"{Items.Count} items";
             
-            // Load thumbnails if in thumbnail view mode
-            if (ViewMode == ViewMode.Thumbnail)
+            // Load thumbnails if in thumbnail view mode OR if there are video files
+            // (video files need thumbnails for the detail viewer even in list view)
+            var hasVideos = Items.Any(i => i.ItemType == FileItemType.Video);
+            if (ViewMode == ViewMode.Thumbnail || hasVideos)
             {
                 _ = LoadThumbnailsAsync();
             }
@@ -269,17 +271,19 @@ public partial class MainViewModel : ObservableObject
         {
             await NavigateToPathAsync(item.FullPath);
         }
-        else if (item.IsViewableImage)
+        else if (item.IsViewableImage || item.IsVideo)
         {
-            OpenImageViewer(item);
+            // Open images and videos in detail viewer
+            OpenDetailViewer(item);
         }
         else
         {
-            _processLauncher.OpenWithDefault(item.FullPath);
+            // For other file types, open detail viewer which will show "Open in associated app" option
+            OpenDetailViewer(item);
         }
     }
 
-    private void OpenImageViewer(FileItemViewModel item)
+    private void OpenDetailViewer(FileItemViewModel item)
     {
         var allFileItems = Items.Select(i => i.Model).ToList();
         var detailViewModel = _serviceProvider.GetRequiredService<DetailViewModel>();
@@ -712,6 +716,23 @@ public partial class MainViewModel : ObservableObject
         _thumbnailCts?.Cancel();
         _thumbnailCts = new CancellationTokenSource();
         var ct = _thumbnailCts.Token;
+
+        // Ensure FFmpeg is available for video thumbnails before processing
+        var hasVideos = Items.Any(i => i.ItemType == FileItemType.Video && i.Thumbnail == null);
+        if (hasVideos && !_ffmpegManager.IsAvailable)
+        {
+            _logger.LogInformation("Video files detected, ensuring FFmpeg is available...");
+            StatusText = "Preparing video thumbnail support...";
+            var success = await _ffmpegManager.EnsureAvailableAsync();
+            if (!success)
+            {
+                _logger.LogWarning("Failed to ensure FFmpeg availability for video thumbnails");
+            }
+            else
+            {
+                _logger.LogInformation("FFmpeg is now available for video thumbnails");
+            }
+        }
 
         var itemsToLoad = Items.Where(i => i.Thumbnail == null && (i.ItemType == FileItemType.Image || i.ItemType == FileItemType.Video)).ToList();
         

@@ -51,4 +51,14 @@ public sealed class FileItem
     /// Indicates if this file can be viewed in the built-in image viewer.
     /// </summary>
     public bool IsViewableImage => ItemType == FileItemType.Image;
+
+    /// <summary>
+    /// Indicates if this file is a video that can be played.
+    /// </summary>
+    public bool IsVideo => ItemType == FileItemType.Video;
+
+    /// <summary>
+    /// Indicates if this file type is supported in detail viewer (image or video).
+    /// </summary>
+    public bool IsViewableMedia => ItemType is FileItemType.Image or FileItemType.Video;
 }

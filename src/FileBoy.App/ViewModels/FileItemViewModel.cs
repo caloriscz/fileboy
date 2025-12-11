@@ -26,6 +26,8 @@ public partial class FileItemViewModel : ObservableObject
     public DateTime ModifiedDate => _model.ModifiedDate;
     public bool IsDirectory => _model.IsDirectory;
     public bool IsViewableImage => _model.IsViewableImage;
+    public bool IsVideo => _model.IsVideo;
+    public bool IsViewableMedia => _model.IsViewableMedia;
     public FileItemType ItemType => _model.ItemType;
 
     public string FormattedSize => _model.IsDirectory ? "" : _model.Size.FormatFileSize();
