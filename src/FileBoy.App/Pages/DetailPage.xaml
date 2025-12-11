@@ -178,6 +178,7 @@
                               ScrubbingEnabled="True"
                               Volume="0"
                               Stretch="Uniform"
+                              MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown"
                               MediaOpened="VideoPlayer_MediaOpened"
                               MediaFailed="VideoPlayer_MediaFailed"/>
                 
@@ -228,38 +229,60 @@
                                        FontSize="11"/>
                         </Grid>
                         
-                        <!-- Playback Buttons -->
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Button x:Name="PlayButton"
-                                    Content="▶ Play" 
-                                    Width="80" 
-                                    Height="32"
-                                    Margin="5,0"
-                                    Click="PlayButton_Click"
-                                    Background="#0078D4"
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    Cursor="Hand"/>
-                            <Button x:Name="PauseButton"
-                                    Content="⏸ Pause" 
-                                    Width="80" 
-                                    Height="32"
-                                    Margin="5,0"
-                                    Click="PauseButton_Click"
-                                    Background="#0078D4"
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    Cursor="Hand"/>
-                            <Button Content="⏹ Stop" 
-                                    Width="80" 
-                                    Height="32"
-                                    Margin="5,0"
-                                    Click="StopButton_Click"
-                                    Background="#555"
-                                    Foreground="White"
-                                    BorderThickness="0"
-                                    Cursor="Hand"/>
-                        </StackPanel>
+                        <!-- Playback Buttons and Volume -->
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <!-- Playback Controls (Left) -->
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" Margin="10,0,0,0">
+                                <Button x:Name="PlayPauseButton"
+                                        Content="▶ Play" 
+                                        Width="90" 
+                                        Height="32"
+                                        Margin="5,0"
+                                        Click="PlayPauseButton_Click"
+                                        Background="#0078D4"
+                                        Foreground="White"
+                                        BorderThickness="0"
+                                        Cursor="Hand"/>
+                                <Button Content="⏹ Stop" 
+                                        Width="70" 
+                                        Height="32"
+                                        Margin="5,0"
+                                        Click="StopButton_Click"
+                                        Background="#555"
+                                        Foreground="White"
+                                        BorderThickness="0"
+                                        Cursor="Hand"/>
+                            </StackPanel>
+                            
+                            <!-- Volume Controls (Right) -->
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,10,0">
+                                <Button x:Name="MuteButton"
+                                        Content="🔊" 
+                                        Width="40" 
+                                        Height="32"
+                                        Margin="5,0"
+                                        Click="MuteButton_Click"
+                                        Background="#555"
+                                        Foreground="White"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        FontSize="16"/>
+                                <Slider x:Name="VolumeSlider"
+                                        Width="100"
+                                        Minimum="0"
+                                        Maximum="1"
+                                        Value="1"
+                                        VerticalAlignment="Center"
+                                        Margin="5,0"
+                                        ValueChanged="VolumeSlider_ValueChanged"/>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </Border>
             </Grid>

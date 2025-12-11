@@ -180,7 +180,20 @@ public partial class DetailPage : Page
         // LoadedBehavior="Pause" automatically shows first frame
         ViewModel.VideoPosition = TimeSpan.Zero;
         
-        // Volume is 0 by default (set in XAML), will be restored when user clicks play
+        // Initialize volume controls only if not already initialized
+        if (VolumeSlider.Value == 1.0 && VideoPlayer.Volume == 0)
+        {
+            VideoPlayer.Volume = 0; // Start muted
+            VolumeSlider.Value = 1.0; // Default volume when unmuted
+            UpdateMuteButtonIcon();
+        }
+        
+        // Only reset play state if video is not currently playing
+        // (MediaOpened can fire multiple times)
+        if (!ViewModel.IsVideoPlaying)
+        {
+            PlayPauseButton.Content = "▶ Play";
+        }
     }
 
     private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)
@@ -197,21 +210,40 @@ public partial class DetailPage : Page
         }
     }
 
-    private void PlayButton_Click(object sender, RoutedEventArgs e)
+    private void PlayPauseButton_Click(object sender, RoutedEventArgs e)
     {
-        VideoPlayer.Volume = 1.0;
-        VideoPlayer.LoadedBehavior = MediaState.Manual;
-        VideoPlayer.Play();
-        ViewModel.IsVideoPlaying = true;
-        _videoPositionTimer?.Start();
+        TogglePlayPause();
     }
 
-    private void PauseButton_Click(object sender, RoutedEventArgs e)
+    private void VideoPlayer_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        TogglePlayPause();
+        e.Handled = true;
+    }
+
+    private void TogglePlayPause()
     {
         VideoPlayer.LoadedBehavior = MediaState.Manual;
-        VideoPlayer.Pause();
-        ViewModel.IsVideoPlaying = false;
-        _videoPositionTimer?.Stop();
+        
+        if (ViewModel.IsVideoPlaying)
+        {
+            VideoPlayer.Pause();
+            ViewModel.IsVideoPlaying = false;
+            _videoPositionTimer?.Stop();
+            PlayPauseButton.Content = "▶ Play";
+        }
+        else
+        {
+            // Restore volume if it was muted initially
+            if (VideoPlayer.Volume == 0)
+            {
+                VideoPlayer.Volume = VolumeSlider.Value;
+            }
+            VideoPlayer.Play();
+            ViewModel.IsVideoPlaying = true;
+            _videoPositionTimer?.Start();
+            PlayPauseButton.Content = "⏸ Pause";
+        }
     }
 
     private void StopButton_Click(object sender, RoutedEventArgs e)
@@ -219,10 +251,10 @@ public partial class DetailPage : Page
         VideoPlayer.LoadedBehavior = MediaState.Manual;
         VideoPlayer.Stop();
         VideoPlayer.Position = TimeSpan.Zero;
-        VideoPlayer.Volume = 0;
         ViewModel.IsVideoPlaying = false;
         ViewModel.VideoPosition = TimeSpan.Zero;
         _videoPositionTimer?.Stop();
+        PlayPauseButton.Content = "▶ Play";
     }
 
     private void VideoProgressSlider_PreviewMouseDown(object sender, MouseButtonEventArgs e)
@@ -271,6 +303,42 @@ public partial class DetailPage : Page
             {
                 _videoPositionTimer?.Start();
             }
+        }
+    }
+
+    private void VolumeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+    {
+        if (VideoPlayer != null)
+        {
+            VideoPlayer.Volume = e.NewValue;
+            UpdateMuteButtonIcon();
+        }
+    }
+
+    private void MuteButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (VideoPlayer.Volume > 0)
+        {
+            // Mute
+            VolumeSlider.Tag = VideoPlayer.Volume; // Store current volume
+            VideoPlayer.Volume = 0;
+            VolumeSlider.Value = 0;
+        }
+        else
+        {
+            // Unmute - restore previous volume or default to 1.0
+            var previousVolume = VolumeSlider.Tag as double? ?? 1.0;
+            VideoPlayer.Volume = previousVolume;
+            VolumeSlider.Value = previousVolume;
+        }
+        UpdateMuteButtonIcon();
+    }
+
+    private void UpdateMuteButtonIcon()
+    {
+        if (MuteButton != null)
+        {
+            MuteButton.Content = VideoPlayer.Volume == 0 ? "🔇" : "🔊";
         }
     }
 }
