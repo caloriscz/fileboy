@@ -23,6 +23,15 @@ public partial class DetailPage : Page
         // Ensure page can receive keyboard input
         Focusable = true;
         Loaded += (s, e) => Focus();
+        
+        // Track container size changes
+        ImageScrollViewer.SizeChanged += (s, e) =>
+        {
+            if (e.NewSize.Width > 0 && e.NewSize.Height > 0)
+            {
+                viewModel.UpdateContainerSize(e.NewSize.Width, e.NewSize.Height);
+            }
+        };
     }
 
     private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)

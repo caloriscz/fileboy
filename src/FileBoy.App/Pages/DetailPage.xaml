@@ -85,10 +85,25 @@
                     Padding="8,4">
                 <TextBlock Text="⇔ Resize" FontSize="12" Foreground="White"/>
             </Button>
+            <Separator/>
+            <Menu Background="Transparent" VerticalAlignment="Center">
+                <MenuItem Header="View" Foreground="White" Padding="8,4">
+                    <MenuItem Header="Original Size (100%)" 
+                              Command="{Binding SetDisplayModeCommand}"
+                              CommandParameter="Original"/>
+                    <MenuItem Header="Fit to Screen" 
+                              Command="{Binding SetDisplayModeCommand}"
+                              CommandParameter="FitToScreen"/>
+                    <MenuItem Header="Fit if Larger" 
+                              Command="{Binding SetDisplayModeCommand}"
+                              CommandParameter="FitIfLarger"/>
+                </MenuItem>
+            </Menu>
         </ToolBar>
         
         <!-- Image Display -->
-        <ScrollViewer Grid.Row="1" 
+        <ScrollViewer x:Name="ImageScrollViewer"
+                      Grid.Row="1" 
                       HorizontalScrollBarVisibility="Auto" 
                       VerticalScrollBarVisibility="Auto"
                       Background="#1e1e1e"

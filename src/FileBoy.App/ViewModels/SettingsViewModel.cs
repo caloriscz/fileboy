@@ -33,6 +33,8 @@ public partial class SettingsViewModel : ObservableObject
                 SettingType.Enum, nameof(DefaultViewMode), typeof(ViewMode)),
             new SettingItem("Appearance", "Thumbnail Size", "Size of thumbnails in pixels (50-600)", 
                 SettingType.Slider, nameof(ThumbnailSize), minValue: 50, maxValue: 600),
+            new SettingItem("Appearance", "Image Display Mode", "How images are displayed in the viewer (Original size, Fit to screen, or Fit if larger)", 
+                SettingType.Enum, nameof(ImageDisplayMode), typeof(ImageDisplayMode)),
         ];
         
         FilteredSettings = new ObservableCollection<SettingItem>(AllSettings);
@@ -65,8 +67,12 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _thumbnailSize = 120;
 
+    [ObservableProperty]
+    private ImageDisplayMode _imageDisplayMode;
+
     public Array StartupModeValues => Enum.GetValues(typeof(WindowStartupMode));
     public Array DefaultViewModeValues => Enum.GetValues(typeof(ViewMode));
+    public Array ImageDisplayModeValues => Enum.GetValues(typeof(ImageDisplayMode));
 
     partial void OnSelectedCategoryChanged(SettingsCategory? value)
     {
@@ -108,6 +114,7 @@ public partial class SettingsViewModel : ObservableObject
         StartupMode = settings.StartupMode;
         DefaultViewMode = settings.DefaultView;
         ThumbnailSize = settings.ThumbnailSize;
+        ImageDisplayMode = settings.ImageDisplayMode;
     }
 
     [RelayCommand]
@@ -117,6 +124,7 @@ public partial class SettingsViewModel : ObservableObject
         settings.StartupMode = StartupMode;
         settings.DefaultView = DefaultViewMode;
         settings.ThumbnailSize = ThumbnailSize;
+        settings.ImageDisplayMode = ImageDisplayMode;
         await _settingsService.SaveAsync();
     }
 
@@ -126,6 +134,7 @@ public partial class SettingsViewModel : ObservableObject
         StartupMode = WindowStartupMode.Normal;
         DefaultViewMode = ViewMode.List;
         ThumbnailSize = 120;
+        ImageDisplayMode = ImageDisplayMode.FitIfLarger;
     }
 }
 

@@ -17,15 +17,18 @@ public partial class DetailViewModel : ObservableObject
 {
     private readonly IPageNavigationService _navigationService;
     private readonly IImageEditorService _imageEditorService;
+    private readonly ISettingsService _settingsService;
     private readonly ILogger<DetailViewModel> _logger;
 
     public DetailViewModel(
         IPageNavigationService navigationService,
         IImageEditorService imageEditorService,
+        ISettingsService settingsService,
         ILogger<DetailViewModel> logger)
     {
         _navigationService = navigationService;
         _imageEditorService = imageEditorService;
+        _settingsService = settingsService;
         _logger = logger;
     }
 
@@ -52,6 +55,12 @@ public partial class DetailViewModel : ObservableObject
 
     [ObservableProperty]
     private string _selectionInfo = string.Empty;
+
+    [ObservableProperty]
+    private double _containerWidth;
+
+    [ObservableProperty]
+    private double _containerHeight;
 
     public bool HasCropSelection => CropSelection.Width > 0 && CropSelection.Height > 0;
 
@@ -114,7 +123,9 @@ public partial class DetailViewModel : ObservableObject
             
             ImageSource = bitmap;
             ImageInfo = $"{bitmap.PixelWidth} × {bitmap.PixelHeight} px";
-            ZoomLevel = 1.0;
+            
+            // Apply display mode
+            ApplyDisplayMode();
         }
         catch (Exception ex)
         {
@@ -123,6 +134,57 @@ public partial class DetailViewModel : ObservableObject
 
         OnPropertyChanged(nameof(HasPrevious));
         OnPropertyChanged(nameof(HasNext));
+        
+        // Notify commands that CanExecute state changed
+        PreviousCommand.NotifyCanExecuteChanged();
+        NextCommand.NotifyCanExecuteChanged();
+    }
+
+    public void UpdateContainerSize(double width, double height)
+    {
+        ContainerWidth = width;
+        ContainerHeight = height;
+        ApplyDisplayMode();
+    }
+
+    private void ApplyDisplayMode()
+    {
+        if (ImageSource is not BitmapSource bitmap || ContainerWidth == 0 || ContainerHeight == 0)
+        {
+            ZoomLevel = 1.0;
+            return;
+        }
+
+        var displayMode = _settingsService.Settings.ImageDisplayMode;
+        
+        switch (displayMode)
+        {
+            case Core.Enums.ImageDisplayMode.Original:
+                ZoomLevel = 1.0;
+                break;
+                
+            case Core.Enums.ImageDisplayMode.FitToScreen:
+                ZoomLevel = CalculateFitZoom(bitmap.PixelWidth, bitmap.PixelHeight);
+                break;
+                
+            case Core.Enums.ImageDisplayMode.FitIfLarger:
+                if (bitmap.PixelWidth > ContainerWidth || bitmap.PixelHeight > ContainerHeight)
+                {
+                    ZoomLevel = CalculateFitZoom(bitmap.PixelWidth, bitmap.PixelHeight);
+                }
+                else
+                {
+                    ZoomLevel = 1.0;
+                }
+                break;
+        }
+    }
+
+    private double CalculateFitZoom(int imageWidth, int imageHeight)
+    {
+        var scaleX = ContainerWidth / imageWidth;
+        var scaleY = ContainerHeight / imageHeight;
+        return Math.Min(scaleX, scaleY);
     }
 
     [RelayCommand]
@@ -138,6 +200,8 @@ public partial class DetailViewModel : ObservableObject
         {
             _currentIndex--;
             LoadImage(_imageFiles[_currentIndex]);
+            PreviousCommand.NotifyCanExecuteChanged();
+            NextCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -148,6 +212,8 @@ public partial class DetailViewModel : ObservableObject
         {
             _currentIndex++;
             LoadImage(_imageFiles[_currentIndex]);
+            PreviousCommand.NotifyCanExecuteChanged();
+            NextCommand.NotifyCanExecuteChanged();
         }
     }
 
@@ -312,6 +378,18 @@ public partial class DetailViewModel : ObservableObject
                 "Resize Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
+        }
+    }
+
+    [RelayCommand]
+    private async Task SetDisplayMode(string mode)
+    {
+        if (Enum.TryParse<Core.Enums.ImageDisplayMode>(mode, out var displayMode))
+        {
+            _settingsService.Settings.ImageDisplayMode = displayMode;
+            await _settingsService.SaveAsync();
+            ApplyDisplayMode();
+            _logger.LogInformation("Image display mode changed to {Mode}", displayMode);
         }
     }
 }

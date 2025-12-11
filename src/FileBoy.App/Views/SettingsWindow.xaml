@@ -171,6 +171,11 @@
                                                           ItemsSource="{Binding DataContext.DefaultViewModeValues, RelativeSource={RelativeSource AncestorType=Window}}"
                                                           SelectedItem="{Binding DataContext.DefaultViewMode, RelativeSource={RelativeSource AncestorType=Window}}"/>
                                             </DataTemplate>
+                                            <DataTemplate x:Key="ImageDisplayModeEnumTemplate">
+                                                <ComboBox Width="250" HorizontalAlignment="Left"
+                                                          ItemsSource="{Binding DataContext.ImageDisplayModeValues, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                          SelectedItem="{Binding DataContext.ImageDisplayMode, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                            </DataTemplate>
                                             <DataTemplate x:Key="SliderTemplate">
                                                 <StackPanel Orientation="Horizontal">
                                                     <Slider Width="200" 
@@ -194,6 +199,9 @@
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding PropertyName}" Value="DefaultViewMode">
                                                         <Setter Property="ContentTemplate" Value="{StaticResource DefaultViewModeEnumTemplate}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding PropertyName}" Value="ImageDisplayMode">
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource ImageDisplayModeEnumTemplate}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Type}" Value="Slider">
                                                         <Setter Property="ContentTemplate" Value="{StaticResource SliderTemplate}"/>

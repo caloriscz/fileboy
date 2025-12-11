@@ -48,6 +48,11 @@ public sealed class AppSettings
     public double PreviewPanelWidth { get; set; } = 400;
 
     /// <summary>
+    /// Image display mode in detail viewer (Original, FitToScreen, FitIfLarger).
+    /// </summary>
+    public ImageDisplayMode ImageDisplayMode { get; set; } = ImageDisplayMode.FitIfLarger;
+
+    /// <summary>
     /// Recently used folders for copy/move operations (most recent first).
     /// </summary>
     public List<string> RecentFolders { get; set; } = [];
