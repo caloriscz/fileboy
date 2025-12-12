@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -496,6 +497,53 @@ public partial class DetailViewModel : ObservableObject
     }
 
     public Action<TimeSpan>? OnSeekRequested { get; set; }
+
+    [RelayCommand]
+    private void TakeSnapshot()
+    {
+        if (!IsVideo)
+        {
+            _logger.LogWarning("Snapshot requested but current file is not a video");
+            return;
+        }
+
+        var snapshotFolder = _settingsService.Settings.SnapshotFolder;
+        
+        if (string.IsNullOrWhiteSpace(snapshotFolder))
+        {
+            MessageBox.Show(
+                "Snapshot folder is not configured. Please set the snapshot folder in Settings.",
+                "Snapshot Folder Not Set",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
+            _logger.LogWarning("Snapshot attempted but folder not configured");
+            return;
+        }
+
+        if (!Directory.Exists(snapshotFolder))
+        {
+            try
+            {
+                Directory.CreateDirectory(snapshotFolder);
+                _logger.LogInformation("Created snapshot folder: {Folder}", snapshotFolder);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create snapshot folder: {Folder}", snapshotFolder);
+                MessageBox.Show(
+                    $"Failed to create snapshot folder: {ex.Message}",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                return;
+            }
+        }
+
+        // Request snapshot from view
+        OnSnapshotRequested?.Invoke();
+    }
+
+    public Action? OnSnapshotRequested { get; set; }
 
     [RelayCommand]
     private void OpenInAssociatedApp()

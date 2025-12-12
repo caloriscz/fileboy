@@ -201,6 +201,22 @@
                                                                MinWidth="50"/>
                                                 </StackPanel>
                                             </DataTemplate>
+                                            <DataTemplate x:Key="TextTemplate">
+                                                <TextBox Width="350" HorizontalAlignment="Left"
+                                                         Text="{Binding DataContext.SnapshotNameTemplate, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged}"/>
+                                            </DataTemplate>
+                                            <DataTemplate x:Key="FolderPickerTemplate">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBox Width="300" 
+                                                             Text="{Binding DataContext.SnapshotFolder, RelativeSource={RelativeSource AncestorType=Window}, UpdateSourceTrigger=PropertyChanged}"
+                                                             IsReadOnly="True"
+                                                             Background="#2d2d2d"/>
+                                                    <Button Content="Browse..." 
+                                                            Width="80" 
+                                                            Margin="10,0,0,0"
+                                                            Click="BrowseSnapshotFolder_Click"/>
+                                                </StackPanel>
+                                            </DataTemplate>
                                         </ContentControl.Resources>
                                         <ContentControl.Style>
                                             <Style TargetType="ContentControl">
@@ -219,6 +235,12 @@
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Type}" Value="Slider">
                                                         <Setter Property="ContentTemplate" Value="{StaticResource SliderTemplate}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Type}" Value="Text">
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource TextTemplate}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Type}" Value="FolderPicker">
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource FolderPickerTemplate}"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>

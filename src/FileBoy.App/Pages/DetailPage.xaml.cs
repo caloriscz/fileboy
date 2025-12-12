@@ -4,6 +4,8 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using FileBoy.App.ViewModels;
+using FileBoy.Core.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FileBoy.App.Pages;
 
@@ -47,6 +49,12 @@ public partial class DetailPage : Page
         viewModel.OnSeekRequested = (position) =>
         {
             VideoPlayer.Position = position;
+        };
+        
+        // Setup snapshot callback
+        viewModel.OnSnapshotRequested = () =>
+        {
+            CaptureVideoSnapshot();
         };
         
         // Cleanup on unload
@@ -339,6 +347,72 @@ public partial class DetailPage : Page
         if (MuteButton != null)
         {
             MuteButton.Content = VideoPlayer.Volume == 0 ? "🔇" : "🔊";
+        }
+    }
+
+    private void CaptureVideoSnapshot()
+    {
+        try
+        {
+            // Get snapshot settings
+            var settingsService = App.Services.GetRequiredService<ISettingsService>();
+            var settings = settingsService.Settings;
+            
+            var snapshotFolder = settings.SnapshotFolder;
+            var nameTemplate = settings.SnapshotNameTemplate;
+            
+            // Generate filename
+            var videoName = System.IO.Path.GetFileNameWithoutExtension(ViewModel.FileName);
+            var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            
+            // Find next available counter
+            var counter = 1;
+            string fileName;
+            string fullPath;
+            
+            do
+            {
+                fileName = nameTemplate
+                    .Replace("{name}", videoName)
+                    .Replace("{counter}", counter.ToString())
+                    .Replace("{timestamp}", timestamp) + ".png";
+                
+                fullPath = System.IO.Path.Combine(snapshotFolder, fileName);
+                counter++;
+            } while (System.IO.File.Exists(fullPath) && counter < 1000);
+            
+            // Capture the video frame
+            var width = (int)VideoPlayer.ActualWidth;
+            var height = (int)VideoPlayer.ActualHeight;
+            
+            if (width == 0 || height == 0)
+            {
+                MessageBox.Show("Cannot capture snapshot: video player size is invalid.", "Snapshot Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            
+            var renderBitmap = new System.Windows.Media.Imaging.RenderTargetBitmap(
+                width, height, 96, 96, System.Windows.Media.PixelFormats.Pbgra32);
+            
+            renderBitmap.Render(VideoPlayer);
+            
+            // Save as PNG
+            var encoder = new System.Windows.Media.Imaging.PngBitmapEncoder();
+            encoder.Frames.Add(System.Windows.Media.Imaging.BitmapFrame.Create(renderBitmap));
+            
+            using (var fileStream = new System.IO.FileStream(fullPath, System.IO.FileMode.Create))
+            {
+                encoder.Save(fileStream);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(
+                $"Failed to capture snapshot: {ex.Message}",
+                "Snapshot Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
     }
 }

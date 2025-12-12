@@ -24,6 +24,7 @@
         <KeyBinding Key="OemMinus" Command="{Binding ZoomOutCommand}"/>
         <KeyBinding Key="D0" Command="{Binding ZoomFitCommand}"/>
         <KeyBinding Key="NumPad0" Command="{Binding ZoomFitCommand}"/>
+        <KeyBinding Key="F12" Command="{Binding TakeSnapshotCommand}"/>
     </Page.InputBindings>
     
     <Grid>
@@ -170,17 +171,18 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 
-                <MediaElement x:Name="VideoPlayer"
-                              Grid.Row="0"
-                              Source="{Binding FilePath}"
-                              LoadedBehavior="Pause"
-                              UnloadedBehavior="Stop"
-                              ScrubbingEnabled="True"
-                              Volume="0"
-                              Stretch="Uniform"
-                              MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown"
-                              MediaOpened="VideoPlayer_MediaOpened"
-                              MediaFailed="VideoPlayer_MediaFailed"/>
+                <Viewbox Grid.Row="0" Stretch="Uniform">
+                    <MediaElement x:Name="VideoPlayer"
+                                  Source="{Binding FilePath}"
+                                  LoadedBehavior="Pause"
+                                  UnloadedBehavior="Stop"
+                                  ScrubbingEnabled="True"
+                                  Volume="0"
+                                  Stretch="None"
+                                  MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown"
+                                  MediaOpened="VideoPlayer_MediaOpened"
+                                  MediaFailed="VideoPlayer_MediaFailed"/>
+                </Viewbox>
                 
                 <!-- Video Controls -->
                 <Border Grid.Row="1" 
@@ -258,6 +260,21 @@
                                         Foreground="White"
                                         BorderThickness="0"
                                         Cursor="Hand"/>
+                                <Separator Margin="5,0"/>
+                                <Button Command="{Binding TakeSnapshotCommand}"
+                                        ToolTip="Take Snapshot (F12)"
+                                        Width="100" 
+                                        Height="32"
+                                        Margin="5,0"
+                                        Background="#0078D4"
+                                        Foreground="White"
+                                        BorderThickness="0"
+                                        Cursor="Hand">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="📷" FontSize="14" Margin="0,0,5,0"/>
+                                        <TextBlock Text="Snapshot" FontSize="11"/>
+                                    </StackPanel>
+                                </Button>
                             </StackPanel>
                             
                             <!-- Volume Controls (Right) -->

@@ -58,6 +58,16 @@ public sealed class AppSettings
     public int VideoSeekInterval { get; set; } = 5;
 
     /// <summary>
+    /// Folder where video snapshots are saved.
+    /// </summary>
+    public string SnapshotFolder { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Filename template for snapshots. Available placeholders: {name}, {counter}, {timestamp}.
+    /// </summary>
+    public string SnapshotNameTemplate { get; set; } = "{name}_snapshot_{counter}";
+
+    /// <summary>
     /// Recently used folders for copy/move operations (most recent first).
     /// </summary>
     public List<string> RecentFolders { get; set; } = [];

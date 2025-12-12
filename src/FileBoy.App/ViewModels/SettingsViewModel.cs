@@ -37,6 +37,10 @@ public partial class SettingsViewModel : ObservableObject
                 SettingType.Enum, nameof(ImageDisplayMode), typeof(ImageDisplayMode)),
             new SettingItem("General", "Video Seek Interval", "Seconds to skip when using Left/Right arrow keys in video player", 
                 SettingType.Enum, nameof(VideoSeekInterval), typeof(int)),
+            new SettingItem("General", "Snapshot Folder", "Folder where video snapshots are saved", 
+                SettingType.FolderPicker, nameof(SnapshotFolder)),
+            new SettingItem("General", "Snapshot Filename Template", "Template for snapshot filenames. Use {name} for video name, {counter} for number, {timestamp} for date/time", 
+                SettingType.Text, nameof(SnapshotNameTemplate)),
         ];
         
         FilteredSettings = new ObservableCollection<SettingItem>(AllSettings);
@@ -74,6 +78,12 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private int _videoSeekInterval;
+
+    [ObservableProperty]
+    private string _snapshotFolder = string.Empty;
+
+    [ObservableProperty]
+    private string _snapshotNameTemplate = string.Empty;
 
     public Array StartupModeValues => Enum.GetValues(typeof(WindowStartupMode));
     public Array DefaultViewModeValues => Enum.GetValues(typeof(ViewMode));
@@ -122,6 +132,8 @@ public partial class SettingsViewModel : ObservableObject
         ThumbnailSize = settings.ThumbnailSize;
         ImageDisplayMode = settings.ImageDisplayMode;
         VideoSeekInterval = settings.VideoSeekInterval;
+        SnapshotFolder = settings.SnapshotFolder;
+        SnapshotNameTemplate = settings.SnapshotNameTemplate;
     }
 
     [RelayCommand]
@@ -133,6 +145,8 @@ public partial class SettingsViewModel : ObservableObject
         settings.ThumbnailSize = ThumbnailSize;
         settings.ImageDisplayMode = ImageDisplayMode;
         settings.VideoSeekInterval = VideoSeekInterval;
+        settings.SnapshotFolder = SnapshotFolder;
+        settings.SnapshotNameTemplate = SnapshotNameTemplate;
         await _settingsService.SaveAsync();
     }
 
@@ -144,6 +158,8 @@ public partial class SettingsViewModel : ObservableObject
         ThumbnailSize = 120;
         ImageDisplayMode = ImageDisplayMode.FitIfLarger;
         VideoSeekInterval = 5;
+        SnapshotFolder = string.Empty;
+        SnapshotNameTemplate = "{name}_snapshot_{counter}";
     }
 }
 
@@ -197,5 +213,6 @@ public enum SettingType
     Boolean,
     Enum,
     Slider,
-    Text
+    Text,
+    FolderPicker
 }
