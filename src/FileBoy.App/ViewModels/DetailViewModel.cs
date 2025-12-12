@@ -311,6 +311,69 @@ public partial class DetailViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void DeleteFile()
+    {
+        if (CurrentFile == null)
+            return;
+
+        var result = MessageBox.Show(
+            $"Are you sure you want to delete this file?\n\n{FileName}\n\nThis action cannot be undone.",
+            "Confirm Delete",
+            MessageBoxButton.YesNo,
+            MessageBoxImage.Warning);
+
+        if (result != MessageBoxResult.Yes)
+            return;
+
+        try
+        {
+            var fileToDelete = CurrentFile.FullPath;
+            
+            // Determine where to navigate after deletion
+            bool hasMoreFiles = _allFiles.Count > 1;
+            bool wasLastFile = _currentIndex == _allFiles.Count - 1;
+            
+            // Remove from list
+            _allFiles.RemoveAt(_currentIndex);
+            
+            // Delete the file
+            File.Delete(fileToDelete);
+            _logger.LogInformation("Deleted file: {Path}", fileToDelete);
+            
+            // Navigate to appropriate file or go back
+            if (!hasMoreFiles)
+            {
+                // No files left, go back to browser
+                _navigationService.GoBack();
+            }
+            else if (wasLastFile)
+            {
+                // Was last file, move to previous (which is now at the same index - 1)
+                _currentIndex--;
+                LoadFile(_allFiles[_currentIndex]);
+            }
+            else
+            {
+                // Move to next file (which is now at the same index)
+                LoadFile(_allFiles[_currentIndex]);
+            }
+            
+            // Update command states
+            PreviousCommand.NotifyCanExecuteChanged();
+            NextCommand.NotifyCanExecuteChanged();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete file: {Path}", CurrentFile.FullPath);
+            MessageBox.Show(
+                $"Failed to delete file:\n{ex.Message}",
+                "Delete Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
+        }
+    }
+
+    [RelayCommand]
     private void ZoomIn()
     {
         ZoomLevel = Math.Min(ZoomLevel * 1.25, 10.0);

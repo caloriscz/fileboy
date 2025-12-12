@@ -25,6 +25,7 @@
         <KeyBinding Key="D0" Command="{Binding ZoomFitCommand}"/>
         <KeyBinding Key="NumPad0" Command="{Binding ZoomFitCommand}"/>
         <KeyBinding Key="F12" Command="{Binding TakeSnapshotCommand}"/>
+        <KeyBinding Key="Delete" Command="{Binding DeleteFileCommand}"/>
     </Page.InputBindings>
     
     <Grid>
@@ -104,6 +105,12 @@
                     Padding="8,4"
                     Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}">
                 <TextBlock Text="⇔ Resize" FontSize="12" Foreground="White"/>
+            </Button>
+            <Separator/>
+            <Button Command="{Binding DeleteFileCommand}" 
+                    ToolTip="Delete File (Delete)" 
+                    Padding="8,4">
+                <TextBlock Text="🗑 Delete" FontSize="12" Foreground="White"/>
             </Button>
             <Separator Visibility="{Binding IsImage, Converter={StaticResource BoolToVisibilityConverter}}"/>
             <Menu Background="Transparent" 
