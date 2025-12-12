@@ -71,4 +71,22 @@ public partial class BrowserPage : Page
             ViewModel.SelectedItems = listBox.SelectedItems;
         }
     }
+
+    private async void FileListGrid_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && ViewModel.SelectedItem != null)
+        {
+            await ViewModel.OpenItemAsync(ViewModel.SelectedItem);
+            e.Handled = true;
+        }
+    }
+
+    private async void ThumbnailList_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter && ViewModel.SelectedItem != null)
+        {
+            await ViewModel.OpenItemAsync(ViewModel.SelectedItem);
+            e.Handled = true;
+        }
+    }
 }

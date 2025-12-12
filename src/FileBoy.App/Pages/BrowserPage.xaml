@@ -146,7 +146,12 @@
                       RowBackground="White"
                       AlternatingRowBackground="#FAFAFA"
                       Visibility="{Binding ViewMode, Converter={StaticResource ViewModeToVisibility}, ConverterParameter=List}"
-                      MouseDoubleClick="FileListGrid_MouseDoubleClick">
+                      MouseDoubleClick="FileListGrid_MouseDoubleClick"
+                      PreviewKeyDown="FileListGrid_PreviewKeyDown">
+                <DataGrid.InputBindings>
+                    <KeyBinding Key="Enter" Command="{Binding OpenSelectedItemCommand}"/>
+                    <KeyBinding Key="Delete" Command="{Binding DeleteCommand}"/>
+                </DataGrid.InputBindings>
                 <DataGrid.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="New Folder" Command="{Binding NewFolderCommand}" InputGestureText="Ctrl+Shift+N"/>
@@ -200,7 +205,8 @@
                      BorderThickness="0"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      Visibility="{Binding ViewMode, Converter={StaticResource ViewModeToVisibility}, ConverterParameter=Thumbnail}"
-                     MouseDoubleClick="ThumbnailList_MouseDoubleClick">
+                     MouseDoubleClick="ThumbnailList_MouseDoubleClick"
+                     KeyDown="ThumbnailList_KeyDown">
                 <ListBox.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="New Folder" Command="{Binding NewFolderCommand}" InputGestureText="Ctrl+Shift+N"/>
