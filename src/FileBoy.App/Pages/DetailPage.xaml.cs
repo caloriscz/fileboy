@@ -60,6 +60,14 @@ public partial class DetailPage : Page
             VideoPlayer.Position = position;
         };
         
+        // Setup video stop callback
+        viewModel.OnStopVideoRequested = () =>
+        {
+            VideoPlayer.Pause();
+            _videoPositionTimer?.Stop();
+            PlayPauseButton.Content = "▶ Play";
+        };
+        
         // Setup snapshot callback
         viewModel.OnSnapshotRequested = () =>
         {

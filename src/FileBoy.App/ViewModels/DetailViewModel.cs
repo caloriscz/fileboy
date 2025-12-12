@@ -109,6 +109,11 @@ public partial class DetailViewModel : ObservableObject
     /// Action to trigger video display mode update in the view.
     /// </summary>
     public Action? OnVideoDisplayModeChanged { get; set; }
+    
+    /// <summary>
+    /// Action to stop video playback (called from commands like GoToFirstFrame).
+    /// </summary>
+    public Action? OnStopVideoRequested { get; set; }
 
     public bool HasCropSelection => CropSelection.Width > 0 && CropSelection.Height > 0;
 
@@ -504,8 +509,9 @@ public partial class DetailViewModel : ObservableObject
         if (!IsVideo || VideoDuration == TimeSpan.Zero)
             return;
             
-        OnSeekRequested?.Invoke(TimeSpan.Zero);
         IsVideoPlaying = false;
+        OnStopVideoRequested?.Invoke();
+        OnSeekRequested?.Invoke(TimeSpan.Zero);
         _logger.LogInformation("Jumped to first frame");
     }
     
@@ -515,10 +521,11 @@ public partial class DetailViewModel : ObservableObject
         if (!IsVideo || VideoDuration == TimeSpan.Zero)
             return;
             
+        IsVideoPlaying = false;
+        OnStopVideoRequested?.Invoke();
         // Go to last frame (just before the very end to ensure frame is visible)
         var lastFrame = VideoDuration - TimeSpan.FromMilliseconds(100);
         OnSeekRequested?.Invoke(lastFrame);
-        IsVideoPlaying = false;
         _logger.LogInformation("Jumped to last frame");
     }
 
