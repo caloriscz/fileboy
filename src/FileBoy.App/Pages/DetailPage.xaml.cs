@@ -29,6 +29,15 @@ public partial class DetailPage : Page
         Focusable = true;
         Loaded += (s, e) => Focus();
         
+        // Refresh video display mode when page gets focus (after returning from settings)
+        GotFocus += (s, e) =>
+        {
+            if (ViewModel.IsVideo)
+            {
+                ApplyVideoDisplayMode();
+            }
+        };
+        
         // Track container size changes
         ImageScrollViewer.SizeChanged += (s, e) =>
         {
@@ -55,6 +64,12 @@ public partial class DetailPage : Page
         viewModel.OnSnapshotRequested = () =>
         {
             CaptureVideoSnapshot();
+        };
+        
+        // Setup video display mode changed callback
+        viewModel.OnVideoDisplayModeChanged = () =>
+        {
+            ApplyVideoDisplayMode();
         };
         
         // Cleanup on unload
@@ -202,6 +217,56 @@ public partial class DetailPage : Page
         {
             PlayPauseButton.Content = "▶ Play";
         }
+        
+        // Handle FitIfLarger mode for video
+        ApplyVideoDisplayMode();
+    }
+    
+    private void ApplyVideoDisplayMode()
+    {
+        if (VideoPlayer.NaturalVideoWidth == 0 || VideoPlayer.NaturalVideoHeight == 0)
+            return;
+            
+        var settingsService = App.Services.GetRequiredService<ISettingsService>();
+        var displayMode = settingsService.Settings.VideoDisplayMode;
+        
+        switch (displayMode)
+        {
+            case FileBoy.Core.Enums.MediaDisplayMode.Original:
+                VideoViewbox.Stretch = System.Windows.Media.Stretch.None;
+                break;
+                
+            case FileBoy.Core.Enums.MediaDisplayMode.FitToScreen:
+                VideoViewbox.Stretch = System.Windows.Media.Stretch.Uniform;
+                break;
+                
+            case FileBoy.Core.Enums.MediaDisplayMode.FitIfLarger:
+                // Get video natural dimensions
+                var videoWidth = VideoPlayer.NaturalVideoWidth;
+                var videoHeight = VideoPlayer.NaturalVideoHeight;
+                
+                // Get available space (use parent grid size)
+                var parentGrid = VideoViewbox.Parent as FrameworkElement;
+                var availableWidth = parentGrid?.ActualWidth ?? 0;
+                var availableHeight = parentGrid?.ActualHeight ?? 0;
+                
+                // If video is smaller than available space, show original size
+                if (videoWidth <= availableWidth && videoHeight <= availableHeight)
+                {
+                    VideoViewbox.Stretch = System.Windows.Media.Stretch.None;
+                }
+                else
+                {
+                    VideoViewbox.Stretch = System.Windows.Media.Stretch.Uniform;
+                }
+                break;
+        }
+    }
+    
+    private void VideoPlayer_SizeChanged(object sender, SizeChangedEventArgs e)
+    {
+        // Reapply display mode when video size changes (e.g., after loading)
+        ApplyVideoDisplayMode();
     }
 
     private void VideoPlayer_MediaFailed(object sender, ExceptionRoutedEventArgs e)

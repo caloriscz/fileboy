@@ -86,6 +86,29 @@ public partial class DetailViewModel : ObservableObject
     public bool IsImage => CurrentFile?.IsViewableImage ?? false;
     public bool IsVideo => CurrentFile?.IsVideo ?? false;
     public bool IsUnsupportedFile => CurrentFile != null && !CurrentFile.IsViewableMedia;
+    
+    /// <summary>
+    /// Gets the video display mode as a string for XAML binding to Viewbox Stretch property.
+    /// </summary>
+    public string VideoDisplayModeStretch
+    {
+        get
+        {
+            var mode = _settingsService.Settings.VideoDisplayMode;
+            return mode switch
+            {
+                Core.Enums.MediaDisplayMode.Original => "None",
+                Core.Enums.MediaDisplayMode.FitToScreen => "Uniform",
+                Core.Enums.MediaDisplayMode.FitIfLarger => "Uniform", // Will be dynamically adjusted in code-behind
+                _ => "Uniform"
+            };
+        }
+    }
+    
+    /// <summary>
+    /// Action to trigger video display mode update in the view.
+    /// </summary>
+    public Action? OnVideoDisplayModeChanged { get; set; }
 
     public bool HasCropSelection => CropSelection.Width > 0 && CropSelection.Height > 0;
 
@@ -224,15 +247,15 @@ public partial class DetailViewModel : ObservableObject
         
         switch (displayMode)
         {
-            case Core.Enums.ImageDisplayMode.Original:
+            case Core.Enums.MediaDisplayMode.Original:
                 ZoomLevel = 1.0;
                 break;
                 
-            case Core.Enums.ImageDisplayMode.FitToScreen:
+            case Core.Enums.MediaDisplayMode.FitToScreen:
                 ZoomLevel = CalculateFitZoom(bitmap.PixelWidth, bitmap.PixelHeight);
                 break;
                 
-            case Core.Enums.ImageDisplayMode.FitIfLarger:
+            case Core.Enums.MediaDisplayMode.FitIfLarger:
                 if (bitmap.PixelWidth > ContainerWidth || bitmap.PixelHeight > ContainerHeight)
                 {
                     ZoomLevel = CalculateFitZoom(bitmap.PixelWidth, bitmap.PixelHeight);
@@ -449,12 +472,23 @@ public partial class DetailViewModel : ObservableObject
     [RelayCommand]
     private async Task SetDisplayMode(string mode)
     {
-        if (Enum.TryParse<Core.Enums.ImageDisplayMode>(mode, out var displayMode))
+        if (Enum.TryParse<Core.Enums.MediaDisplayMode>(mode, out var displayMode))
         {
-            _settingsService.Settings.ImageDisplayMode = displayMode;
-            await _settingsService.SaveAsync();
-            ApplyDisplayMode();
-            _logger.LogInformation("Image display mode changed to {Mode}", displayMode);
+            if (IsImage)
+            {
+                _settingsService.Settings.ImageDisplayMode = displayMode;
+                await _settingsService.SaveAsync();
+                ApplyDisplayMode();
+                _logger.LogInformation("Image display mode changed to {Mode}", displayMode);
+            }
+            else if (IsVideo)
+            {
+                _settingsService.Settings.VideoDisplayMode = displayMode;
+                await _settingsService.SaveAsync();
+                OnPropertyChanged(nameof(VideoDisplayModeStretch));
+                OnVideoDisplayModeChanged?.Invoke();
+                _logger.LogInformation("Video display mode changed to {Mode}", displayMode);
+            }
         }
     }
 
@@ -462,6 +496,30 @@ public partial class DetailViewModel : ObservableObject
     private void TogglePlayPause()
     {
         IsVideoPlaying = !IsVideoPlaying;
+    }
+
+    [RelayCommand]
+    private void GoToFirstFrame()
+    {
+        if (!IsVideo || VideoDuration == TimeSpan.Zero)
+            return;
+            
+        OnSeekRequested?.Invoke(TimeSpan.Zero);
+        IsVideoPlaying = false;
+        _logger.LogInformation("Jumped to first frame");
+    }
+    
+    [RelayCommand]
+    private void GoToLastFrame()
+    {
+        if (!IsVideo || VideoDuration == TimeSpan.Zero)
+            return;
+            
+        // Go to last frame (just before the very end to ensure frame is visible)
+        var lastFrame = VideoDuration - TimeSpan.FromMilliseconds(100);
+        OnSeekRequested?.Invoke(lastFrame);
+        IsVideoPlaying = false;
+        _logger.LogInformation("Jumped to last frame");
     }
 
     [RelayCommand]

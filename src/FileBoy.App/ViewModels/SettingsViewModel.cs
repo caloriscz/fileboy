@@ -34,7 +34,9 @@ public partial class SettingsViewModel : ObservableObject
             new SettingItem("Appearance", "Thumbnail Size", "Size of thumbnails in pixels (50-600)", 
                 SettingType.Slider, nameof(ThumbnailSize), minValue: 50, maxValue: 600),
             new SettingItem("Appearance", "Image Display Mode", "How images are displayed in the viewer (Original size, Fit to screen, or Fit if larger)", 
-                SettingType.Enum, nameof(ImageDisplayMode), typeof(ImageDisplayMode)),
+                SettingType.Enum, nameof(ImageDisplayMode), typeof(MediaDisplayMode)),
+            new SettingItem("Appearance", "Video Display Mode", "How videos are displayed in the viewer (Original size, Fit to screen, or Fit if larger)", 
+                SettingType.Enum, nameof(VideoDisplayMode), typeof(MediaDisplayMode)),
             new SettingItem("General", "Video Seek Interval", "Seconds to skip when using Left/Right arrow keys in video player", 
                 SettingType.Enum, nameof(VideoSeekInterval), typeof(int)),
             new SettingItem("General", "Snapshot Folder", "Folder where video snapshots are saved", 
@@ -74,7 +76,10 @@ public partial class SettingsViewModel : ObservableObject
     private int _thumbnailSize = 120;
 
     [ObservableProperty]
-    private ImageDisplayMode _imageDisplayMode;
+    private MediaDisplayMode _imageDisplayMode;
+
+    [ObservableProperty]
+    private MediaDisplayMode _videoDisplayMode;
 
     [ObservableProperty]
     private int _videoSeekInterval;
@@ -87,7 +92,7 @@ public partial class SettingsViewModel : ObservableObject
 
     public Array StartupModeValues => Enum.GetValues(typeof(WindowStartupMode));
     public Array DefaultViewModeValues => Enum.GetValues(typeof(ViewMode));
-    public Array ImageDisplayModeValues => Enum.GetValues(typeof(ImageDisplayMode));
+    public Array MediaDisplayModeValues => Enum.GetValues(typeof(MediaDisplayMode));
     public int[] VideoSeekIntervalValues => [5, 10, 15, 20, 30, 45, 60];
 
     partial void OnSelectedCategoryChanged(SettingsCategory? value)
@@ -131,6 +136,7 @@ public partial class SettingsViewModel : ObservableObject
         DefaultViewMode = settings.DefaultView;
         ThumbnailSize = settings.ThumbnailSize;
         ImageDisplayMode = settings.ImageDisplayMode;
+        VideoDisplayMode = settings.VideoDisplayMode;
         VideoSeekInterval = settings.VideoSeekInterval;
         SnapshotFolder = settings.SnapshotFolder;
         SnapshotNameTemplate = settings.SnapshotNameTemplate;
@@ -144,6 +150,7 @@ public partial class SettingsViewModel : ObservableObject
         settings.DefaultView = DefaultViewMode;
         settings.ThumbnailSize = ThumbnailSize;
         settings.ImageDisplayMode = ImageDisplayMode;
+        settings.VideoDisplayMode = VideoDisplayMode;
         settings.VideoSeekInterval = VideoSeekInterval;
         settings.SnapshotFolder = SnapshotFolder;
         settings.SnapshotNameTemplate = SnapshotNameTemplate;
@@ -156,7 +163,8 @@ public partial class SettingsViewModel : ObservableObject
         StartupMode = WindowStartupMode.Normal;
         DefaultViewMode = ViewMode.List;
         ThumbnailSize = 120;
-        ImageDisplayMode = ImageDisplayMode.FitIfLarger;
+        ImageDisplayMode = MediaDisplayMode.FitIfLarger;
+        VideoDisplayMode = MediaDisplayMode.FitToScreen;
         VideoSeekInterval = 5;
         SnapshotFolder = string.Empty;
         SnapshotNameTemplate = "{name}_snapshot_{counter}";

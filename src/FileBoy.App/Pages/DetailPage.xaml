@@ -171,7 +171,7 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 
-                <Viewbox Grid.Row="0" Stretch="Uniform">
+                <Viewbox Grid.Row="0" x:Name="VideoViewbox" Stretch="{Binding VideoDisplayModeStretch}">
                     <MediaElement x:Name="VideoPlayer"
                                   Source="{Binding FilePath}"
                                   LoadedBehavior="Pause"
@@ -181,7 +181,8 @@
                                   Stretch="None"
                                   MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown"
                                   MediaOpened="VideoPlayer_MediaOpened"
-                                  MediaFailed="VideoPlayer_MediaFailed"/>
+                                  MediaFailed="VideoPlayer_MediaFailed"
+                                  SizeChanged="VideoPlayer_SizeChanged"/>
                 </Viewbox>
                 
                 <!-- Video Controls -->
@@ -260,6 +261,35 @@
                                         Foreground="White"
                                         BorderThickness="0"
                                         Cursor="Hand"/>
+                                <Separator Margin="5,0"/>
+                                <Button Command="{Binding GoToFirstFrameCommand}"
+                                        ToolTip="Jump to First Frame"
+                                        Width="90" 
+                                        Height="32"
+                                        Margin="5,0"
+                                        Background="#555"
+                                        Foreground="White"
+                                        BorderThickness="0"
+                                        Cursor="Hand">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⏮" FontSize="14" Margin="0,0,5,0"/>
+                                        <TextBlock Text="First" FontSize="11"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button Command="{Binding GoToLastFrameCommand}"
+                                        ToolTip="Jump to Last Frame"
+                                        Width="80" 
+                                        Height="32"
+                                        Margin="5,0"
+                                        Background="#555"
+                                        Foreground="White"
+                                        BorderThickness="0"
+                                        Cursor="Hand">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="⏭" FontSize="14" Margin="0,0,5,0"/>
+                                        <TextBlock Text="Last" FontSize="11"/>
+                                    </StackPanel>
+                                </Button>
                                 <Separator Margin="5,0"/>
                                 <Button Command="{Binding TakeSnapshotCommand}"
                                         ToolTip="Take Snapshot (F12)"

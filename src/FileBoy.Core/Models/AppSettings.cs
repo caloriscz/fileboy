@@ -50,7 +50,12 @@ public sealed class AppSettings
     /// <summary>
     /// Image display mode in detail viewer (Original, FitToScreen, FitIfLarger).
     /// </summary>
-    public ImageDisplayMode ImageDisplayMode { get; set; } = ImageDisplayMode.FitIfLarger;
+    public MediaDisplayMode ImageDisplayMode { get; set; } = MediaDisplayMode.FitIfLarger;
+
+    /// <summary>
+    /// Video display mode in detail viewer (Original, FitToScreen, FitIfLarger).
+    /// </summary>
+    public MediaDisplayMode VideoDisplayMode { get; set; } = MediaDisplayMode.FitToScreen;
 
     /// <summary>
     /// Video seek interval in seconds (Left/Right arrow keys).

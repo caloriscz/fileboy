@@ -1,22 +1,22 @@
 namespace FileBoy.Core.Enums;
 
 /// <summary>
-/// Image display mode in detail viewer.
+/// Media (image/video) display mode in detail viewer.
 /// </summary>
-public enum ImageDisplayMode
+public enum MediaDisplayMode
 {
     /// <summary>
-    /// Display image at its original size (100%).
+    /// Display media at its original size (100%).
     /// </summary>
     Original,
     
     /// <summary>
-    /// Always fit image to screen dimensions.
+    /// Always fit media to screen dimensions.
     /// </summary>
     FitToScreen,
     
     /// <summary>
-    /// Fit to screen only if image is larger than screen.
+    /// Fit to screen only if media is larger than screen.
     /// </summary>
     FitIfLarger
 }

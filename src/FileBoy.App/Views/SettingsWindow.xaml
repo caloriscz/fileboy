@@ -173,8 +173,13 @@
                                             </DataTemplate>
                                             <DataTemplate x:Key="ImageDisplayModeEnumTemplate">
                                                 <ComboBox Width="250" HorizontalAlignment="Left"
-                                                          ItemsSource="{Binding DataContext.ImageDisplayModeValues, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                          ItemsSource="{Binding DataContext.MediaDisplayModeValues, RelativeSource={RelativeSource AncestorType=Window}}"
                                                           SelectedItem="{Binding DataContext.ImageDisplayMode, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                            </DataTemplate>
+                                            <DataTemplate x:Key="VideoDisplayModeEnumTemplate">
+                                                <ComboBox Width="250" HorizontalAlignment="Left"
+                                                          ItemsSource="{Binding DataContext.MediaDisplayModeValues, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                          SelectedItem="{Binding DataContext.VideoDisplayMode, RelativeSource={RelativeSource AncestorType=Window}}"/>
                                             </DataTemplate>
                                             <DataTemplate x:Key="VideoSeekIntervalEnumTemplate">
                                                 <ComboBox Width="250" HorizontalAlignment="Left"
@@ -229,6 +234,9 @@
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding PropertyName}" Value="ImageDisplayMode">
                                                         <Setter Property="ContentTemplate" Value="{StaticResource ImageDisplayModeEnumTemplate}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding PropertyName}" Value="VideoDisplayMode">
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource VideoDisplayModeEnumTemplate}"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding PropertyName}" Value="VideoSeekInterval">
                                                         <Setter Property="ContentTemplate" Value="{StaticResource VideoSeekIntervalEnumTemplate}"/>
