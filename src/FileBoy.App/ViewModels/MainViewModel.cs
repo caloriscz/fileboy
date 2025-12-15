@@ -32,6 +32,13 @@ public partial class MainViewModel : ObservableObject
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MainViewModel> _logger;
     private CancellationTokenSource? _thumbnailCts;
+    private string? _lastSelectedFilePath;
+
+    /// <summary>
+    /// Action to invoke when the selected item should be scrolled into view.
+    /// The Page/View should subscribe to this.
+    /// </summary>
+    public Action? ScrollToSelectedItem { get; set; }
 
     public MainViewModel(
         IFileSystemService fileSystemService,
@@ -196,6 +203,12 @@ public partial class MainViewModel : ObservableObject
             Items = new ObservableCollection<FileItemViewModel>(sortedItems);
             CurrentPath = path;
             
+            // Select first item by default if nothing specific to restore
+            if (string.IsNullOrEmpty(_lastSelectedFilePath) && Items.Count > 0)
+            {
+                SelectedItem = Items.First();
+            }
+            
             _navigationHistory.Navigate(path);
             OnPropertyChanged(nameof(CanGoBack));
             OnPropertyChanged(nameof(CanGoForward));
@@ -285,6 +298,9 @@ public partial class MainViewModel : ObservableObject
 
     private void OpenDetailViewer(FileItemViewModel item)
     {
+        // Store the selected file path so we can restore selection when returning
+        _lastSelectedFilePath = item.FullPath;
+        
         var allFileItems = Items.Select(i => i.Model).ToList();
         var detailViewModel = _serviceProvider.GetRequiredService<DetailViewModel>();
         detailViewModel.Initialize(item.Model, allFileItems);
@@ -479,16 +495,28 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            IsLoading = true;
             StatusText = $"Deleting {selectedPaths.Count} item(s)...";
 
+            // Delete the files
             await _fileSystemService.DeleteFilesAsync(selectedPaths);
+
+            // Remove deleted items from the collection (much faster than full refresh)
+            var pathsToRemove = new HashSet<string>(selectedPaths, StringComparer.OrdinalIgnoreCase);
+            var itemsToRemove = Items.Where(i => pathsToRemove.Contains(i.FullPath)).ToList();
+            
+            foreach (var item in itemsToRemove)
+            {
+                Items.Remove(item);
+            }
 
             StatusText = $"Successfully deleted {selectedPaths.Count} item(s)";
             _logger.LogInformation("Deleted {Count} items", selectedPaths.Count);
 
-            // Refresh the current directory
-            await RefreshAsync();
+            // Select first item if list is not empty
+            if (Items.Count > 0 && SelectedItem == null)
+            {
+                SelectedItem = Items.First();
+            }
         }
         catch (Exception ex)
         {
@@ -499,10 +527,6 @@ public partial class MainViewModel : ObservableObject
                 "Delete Error",
                 System.Windows.MessageBoxButton.OK,
                 System.Windows.MessageBoxImage.Error);
-        }
-        finally
-        {
-            IsLoading = false;
         }
     }
 
@@ -849,6 +873,39 @@ public partial class MainViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+        }
+    }
+
+    /// <summary>
+    /// Restores the selection to the previously selected file or selects the first item.
+    /// This should be called when returning from detail view.
+    /// </summary>
+    public void RestoreSelection()
+    {
+        if (Items.Count == 0)
+        {
+            SelectedItem = null;
+            return;
+        }
+
+        // Try to restore the previously selected file
+        if (!string.IsNullOrEmpty(_lastSelectedFilePath))
+        {
+            var itemToSelect = Items.FirstOrDefault(i => i.FullPath == _lastSelectedFilePath);
+            if (itemToSelect != null)
+            {
+                SelectedItem = itemToSelect;
+                _lastSelectedFilePath = null;
+                ScrollToSelectedItem?.Invoke();
+                return;
+            }
+        }
+
+        // If we couldn't restore the previous selection (file was deleted, etc.), select first item
+        SelectedItem = Items.FirstOrDefault();
+        if (SelectedItem != null)
+        {
+            ScrollToSelectedItem?.Invoke();
         }
     }
 
