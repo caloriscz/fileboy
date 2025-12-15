@@ -27,7 +27,7 @@ public partial class DetailPage : Page
         
         // Ensure page can receive keyboard input
         Focusable = true;
-        Loaded += (s, e) => Focus();
+        Loaded += DetailPage_Loaded;
         
         // Refresh video display mode when page gets focus (after returning from settings)
         GotFocus += (s, e) =>
@@ -54,16 +54,44 @@ public partial class DetailPage : Page
         };
         _videoPositionTimer.Tick += VideoPositionTimer_Tick;
         
-        // Setup video seek callback
+        // Setup video seek callback - with Manual behavior, ensure video is loaded first
         viewModel.OnSeekRequested = (position) =>
         {
-            VideoPlayer.Position = position;
+            try
+            {
+                // With Manual behavior, if duration is not set, video isn't loaded yet
+                // We need to Play then Pause to load it, then seek
+                if (!VideoPlayer.NaturalDuration.HasTimeSpan)
+                {
+                    VideoPlayer.Play();
+                    VideoPlayer.Pause();
+                }
+                VideoPlayer.Position = position;
+                // Update ViewModel position so slider updates
+                ViewModel.VideoPosition = position;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Seek failed: {ex.Message}");
+            }
         };
         
         // Setup video stop callback
         viewModel.OnStopVideoRequested = () =>
         {
-            VideoPlayer.Pause();
+            try
+            {
+                // Ensure video is loaded before pausing
+                if (!VideoPlayer.NaturalDuration.HasTimeSpan)
+                {
+                    VideoPlayer.Play();
+                }
+                VideoPlayer.Pause();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Stop failed: {ex.Message}");
+            }
             _videoPositionTimer?.Stop();
             PlayPauseButton.Content = "▶ Play";
         };
@@ -80,8 +108,38 @@ public partial class DetailPage : Page
             ApplyVideoDisplayMode();
         };
         
-        // Cleanup on unload
-        Unloaded += (s, e) => _videoPositionTimer?.Stop();
+        // Cleanup on unload - with Manual behavior we must stop explicitly
+        Unloaded += (s, e) =>
+        {
+            _videoPositionTimer?.Stop();
+            try
+            {
+                VideoPlayer.Stop();
+                VideoPlayer.Source = null;
+            }
+            catch { }
+        };
+    }
+
+    private void DetailPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        Focus();
+        
+        // With Manual LoadedBehavior, we need to trigger video loading explicitly
+        // by calling Play() then Pause() to show the first frame
+        if (ViewModel.IsVideo && VideoPlayer.Source != null)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                try
+                {
+                    // Play briefly to trigger loading, then pause to show first frame
+                    VideoPlayer.Play();
+                    VideoPlayer.Pause();
+                }
+                catch { }
+            }, DispatcherPriority.Loaded);
+        }
     }
 
     private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
@@ -208,7 +266,13 @@ public partial class DetailPage : Page
             ViewModel.VideoDuration = VideoPlayer.NaturalDuration.TimeSpan;
         }
         
-        // LoadedBehavior="Pause" automatically shows first frame
+        // With Manual behavior, we need to explicitly pause to show first frame
+        try
+        {
+            VideoPlayer.Pause();
+        }
+        catch { }
+        
         ViewModel.VideoPosition = TimeSpan.Zero;
         
         // Initialize volume controls only if not already initialized
@@ -283,6 +347,29 @@ public partial class DetailPage : Page
         _videoPositionTimer?.Stop();
     }
 
+    private void VideoPlayer_MediaEnded(object sender, RoutedEventArgs e)
+    {
+        var settingsService = App.Services.GetRequiredService<ISettingsService>();
+        
+        if (settingsService.Settings.LoopVideo)
+        {
+            // Loop: restart from beginning
+            VideoPlayer.Position = TimeSpan.Zero;
+            ViewModel.VideoPosition = TimeSpan.Zero;
+            VideoPlayer.Play();
+        }
+        else
+        {
+            // No loop: stop playback completely
+            _videoPositionTimer?.Stop();
+            VideoPlayer.Pause();  // Explicitly pause to prevent any auto-restart
+            VideoPlayer.Position = TimeSpan.Zero;
+            ViewModel.IsVideoPlaying = false;
+            ViewModel.VideoPosition = TimeSpan.Zero;
+            PlayPauseButton.Content = "▶ Play";
+        }
+    }
+
     private void VideoPositionTimer_Tick(object? sender, EventArgs e)
     {
         if (!_isUserSeekingVideo && VideoPlayer.Source != null)
@@ -304,8 +391,6 @@ public partial class DetailPage : Page
 
     private void TogglePlayPause()
     {
-        VideoPlayer.LoadedBehavior = MediaState.Manual;
-        
         if (ViewModel.IsVideoPlaying)
         {
             VideoPlayer.Pause();
@@ -329,7 +414,6 @@ public partial class DetailPage : Page
 
     private void StopButton_Click(object sender, RoutedEventArgs e)
     {
-        VideoPlayer.LoadedBehavior = MediaState.Manual;
         VideoPlayer.Stop();
         VideoPlayer.Position = TimeSpan.Zero;
         ViewModel.IsVideoPlaying = false;

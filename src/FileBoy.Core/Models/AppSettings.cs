@@ -63,6 +63,11 @@ public sealed class AppSettings
     public int VideoSeekInterval { get; set; } = 5;
 
     /// <summary>
+    /// Whether to loop video playback.
+    /// </summary>
+    public bool LoopVideo { get; set; } = false;
+
+    /// <summary>
     /// Folder where video snapshots are saved.
     /// </summary>
     public string SnapshotFolder { get; set; } = string.Empty;

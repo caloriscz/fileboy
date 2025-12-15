@@ -80,6 +80,16 @@ public partial class DetailViewModel : ObservableObject
     [ObservableProperty]
     private TimeSpan _videoPosition;
 
+    /// <summary>
+    /// Video position in seconds for slider binding.
+    /// </summary>
+    public double VideoPositionSeconds => VideoPosition.TotalSeconds;
+
+    partial void OnVideoPositionChanged(TimeSpan value)
+    {
+        OnPropertyChanged(nameof(VideoPositionSeconds));
+    }
+
     [ObservableProperty]
     private bool _isSeekingVideo;
 

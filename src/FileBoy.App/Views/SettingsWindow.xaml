@@ -222,6 +222,10 @@
                                                             Click="BrowseSnapshotFolder_Click"/>
                                                 </StackPanel>
                                             </DataTemplate>
+                                            <DataTemplate x:Key="LoopVideoTemplate">
+                                                <CheckBox IsChecked="{Binding DataContext.LoopVideo, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                          Content="Enable"/>
+                                            </DataTemplate>
                                         </ContentControl.Resources>
                                         <ContentControl.Style>
                                             <Style TargetType="ContentControl">
@@ -249,6 +253,9 @@
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding Type}" Value="FolderPicker">
                                                         <Setter Property="ContentTemplate" Value="{StaticResource FolderPickerTemplate}"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding PropertyName}" Value="LoopVideo">
+                                                        <Setter Property="ContentTemplate" Value="{StaticResource LoopVideoTemplate}"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>

@@ -181,14 +181,15 @@
                 <Viewbox Grid.Row="0" x:Name="VideoViewbox" Stretch="{Binding VideoDisplayModeStretch}">
                     <MediaElement x:Name="VideoPlayer"
                                   Source="{Binding FilePath}"
-                                  LoadedBehavior="Pause"
-                                  UnloadedBehavior="Stop"
+                                  LoadedBehavior="Manual"
+                                  UnloadedBehavior="Manual"
                                   ScrubbingEnabled="True"
                                   Volume="0"
                                   Stretch="None"
                                   MouseLeftButtonDown="VideoPlayer_MouseLeftButtonDown"
                                   MediaOpened="VideoPlayer_MediaOpened"
                                   MediaFailed="VideoPlayer_MediaFailed"
+                                  MediaEnded="VideoPlayer_MediaEnded"
                                   SizeChanged="VideoPlayer_SizeChanged"/>
                 </Viewbox>
                 
@@ -222,7 +223,7 @@
                                     Grid.Column="1"
                                     Minimum="0"
                                     Maximum="{Binding VideoDuration.TotalSeconds}"
-                                    Value="{Binding VideoPosition.TotalSeconds, Mode=OneWay}"
+                                    Value="{Binding VideoPositionSeconds, Mode=OneWay}"
                                     VerticalAlignment="Center"
                                     Margin="8,0"
                                     PreviewMouseDown="VideoProgressSlider_PreviewMouseDown"

@@ -39,6 +39,8 @@ public partial class SettingsViewModel : ObservableObject
                 SettingType.Enum, nameof(VideoDisplayMode), typeof(MediaDisplayMode)),
             new SettingItem("General", "Video Seek Interval", "Seconds to skip when using Left/Right arrow keys in video player", 
                 SettingType.Enum, nameof(VideoSeekInterval), typeof(int)),
+            new SettingItem("General", "Loop Video", "Automatically restart video when it ends", 
+                SettingType.Boolean, nameof(LoopVideo)),
             new SettingItem("General", "Snapshot Folder", "Folder where video snapshots are saved", 
                 SettingType.FolderPicker, nameof(SnapshotFolder)),
             new SettingItem("General", "Snapshot Filename Template", "Template for snapshot filenames. Use {name} for video name, {counter} for number, {timestamp} for date/time", 
@@ -83,6 +85,9 @@ public partial class SettingsViewModel : ObservableObject
 
     [ObservableProperty]
     private int _videoSeekInterval;
+
+    [ObservableProperty]
+    private bool _loopVideo;
 
     [ObservableProperty]
     private string _snapshotFolder = string.Empty;
@@ -138,6 +143,7 @@ public partial class SettingsViewModel : ObservableObject
         ImageDisplayMode = settings.ImageDisplayMode;
         VideoDisplayMode = settings.VideoDisplayMode;
         VideoSeekInterval = settings.VideoSeekInterval;
+        LoopVideo = settings.LoopVideo;
         SnapshotFolder = settings.SnapshotFolder;
         SnapshotNameTemplate = settings.SnapshotNameTemplate;
     }
@@ -152,6 +158,7 @@ public partial class SettingsViewModel : ObservableObject
         settings.ImageDisplayMode = ImageDisplayMode;
         settings.VideoDisplayMode = VideoDisplayMode;
         settings.VideoSeekInterval = VideoSeekInterval;
+        settings.LoopVideo = LoopVideo;
         settings.SnapshotFolder = SnapshotFolder;
         settings.SnapshotNameTemplate = SnapshotNameTemplate;
         await _settingsService.SaveAsync();
@@ -166,6 +173,7 @@ public partial class SettingsViewModel : ObservableObject
         ImageDisplayMode = MediaDisplayMode.FitIfLarger;
         VideoDisplayMode = MediaDisplayMode.FitToScreen;
         VideoSeekInterval = 5;
+        LoopVideo = false;
         SnapshotFolder = string.Empty;
         SnapshotNameTemplate = "{name}_snapshot_{counter}";
     }
