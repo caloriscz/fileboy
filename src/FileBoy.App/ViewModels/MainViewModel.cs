@@ -135,6 +135,17 @@ public partial class MainViewModel : ObservableObject
         _ = _settingsService.SaveAsync();
     }
 
+    [ObservableProperty]
+    private bool _showHiddenAndSystemFiles;
+
+    partial void OnShowHiddenAndSystemFilesChanged(bool value)
+    {
+        // Save the setting and reload current path
+        _settingsService.Settings.ShowHiddenAndSystemFiles = value;
+        _ = _settingsService.SaveAsync();
+        _ = RefreshAsync();
+    }
+
     public bool CanGoBack => _navigationHistory.CanGoBack;
     public bool CanGoForward => _navigationHistory.CanGoForward;
 
@@ -144,6 +155,7 @@ public partial class MainViewModel : ObservableObject
         ViewMode = _settingsService.Settings.DefaultView;
         ThumbnailDisplaySize = _settingsService.Settings.ThumbnailSize;
         PreviewPanelWidth = _settingsService.Settings.PreviewPanelWidth;
+        ShowHiddenAndSystemFiles = _settingsService.Settings.ShowHiddenAndSystemFiles;
         
         // Ensure FFmpeg is available (downloads if needed)
         if (!_ffmpegManager.IsAvailable)
@@ -193,7 +205,7 @@ public partial class MainViewModel : ObservableObject
         {
             _logger.LogInformation("Navigating to: {Path}", path);
             
-            var items = await _fileSystemService.GetItemsAsync(path);
+            var items = await _fileSystemService.GetItemsAsync(path, ShowHiddenAndSystemFiles);
             var sortedItems = items
                 .OrderByDescending(i => i.IsDirectory)
                 .ThenBy(i => i.Name, StringComparer.OrdinalIgnoreCase)
@@ -844,7 +856,7 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            var items = await _fileSystemService.GetItemsAsync(path);
+            var items = await _fileSystemService.GetItemsAsync(path, ShowHiddenAndSystemFiles);
             var sortedItems = items
                 .OrderByDescending(i => i.IsDirectory)
                 .ThenBy(i => i.Name, StringComparer.OrdinalIgnoreCase)

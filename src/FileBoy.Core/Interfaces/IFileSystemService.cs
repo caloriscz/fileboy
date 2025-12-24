@@ -11,9 +11,10 @@ public interface IFileSystemService
     /// Gets all files and directories in the specified path.
     /// </summary>
     /// <param name="path">Directory path to list.</param>
+    /// <param name="showHiddenAndSystemFiles">Whether to include hidden and system files.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Collection of file items.</returns>
-    Task<IEnumerable<FileItem>> GetItemsAsync(string path, CancellationToken ct = default);
+    Task<IEnumerable<FileItem>> GetItemsAsync(string path, bool showHiddenAndSystemFiles = false, CancellationToken ct = default);
 
     /// <summary>
     /// Gets detailed information about a single file.

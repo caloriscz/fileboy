@@ -41,6 +41,12 @@ public partial class MainWindow : Window
         ListViewMenuItem.CommandParameter = "List";
         ThumbnailViewMenuItem.Command = _mainViewModel.SetViewModeCommand;
         ThumbnailViewMenuItem.CommandParameter = "Thumbnail";
+        ShowHiddenFilesMenuItem.SetBinding(System.Windows.Controls.MenuItem.IsCheckedProperty, 
+            new System.Windows.Data.Binding(nameof(_mainViewModel.ShowHiddenAndSystemFiles)) 
+            { 
+                Source = _mainViewModel, 
+                Mode = System.Windows.Data.BindingMode.TwoWay 
+            });
         SettingsMenuItem.Command = _mainViewModel.OpenSettingsCommand;
         
         Loaded += MainWindow_Loaded;

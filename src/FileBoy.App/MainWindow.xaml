@@ -38,6 +38,8 @@
             <MenuItem Header="_View">
                 <MenuItem x:Name="ListViewMenuItem" Header="_List View"/>
                 <MenuItem x:Name="ThumbnailViewMenuItem" Header="_Thumbnail View"/>
+                <Separator/>
+                <MenuItem x:Name="ShowHiddenFilesMenuItem" Header="Show _Hidden and System Files" IsCheckable="True"/>
             </MenuItem>
             <MenuItem Header="_Tools">
                 <MenuItem x:Name="SettingsMenuItem" Header="_Settings" InputGestureText="Ctrl+,"/>

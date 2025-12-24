@@ -81,4 +81,9 @@ public sealed class AppSettings
     /// Recently used folders for copy/move operations (most recent first).
     /// </summary>
     public List<string> RecentFolders { get; set; } = [];
+
+    /// <summary>
+    /// Whether to show hidden and system files in the file list.
+    /// </summary>
+    public bool ShowHiddenAndSystemFiles { get; set; } = false;
 }

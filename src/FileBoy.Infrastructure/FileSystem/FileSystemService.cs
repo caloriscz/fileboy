@@ -19,7 +19,7 @@ public sealed class FileSystemService : IFileSystemService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<FileItem>> GetItemsAsync(string path, CancellationToken ct = default)
+    public async Task<IEnumerable<FileItem>> GetItemsAsync(string path, bool showHiddenAndSystemFiles = false, CancellationToken ct = default)
     {
         _logger.LogInformation("Loading items from {Path}", path);
 
@@ -44,6 +44,14 @@ public sealed class FileSystemService : IFileSystemService
 
                     try
                     {
+                        // Skip hidden and system directories if not showing them
+                        if (!showHiddenAndSystemFiles && 
+                            (dir.Attributes.HasFlag(FileAttributes.Hidden) || 
+                             dir.Attributes.HasFlag(FileAttributes.System)))
+                        {
+                            continue;
+                        }
+
                         items.Add(new FileItem
                         {
                             FullPath = dir.FullName,
@@ -66,6 +74,14 @@ public sealed class FileSystemService : IFileSystemService
 
                     try
                     {
+                        // Skip hidden and system files if not showing them
+                        if (!showHiddenAndSystemFiles && 
+                            (file.Attributes.HasFlag(FileAttributes.Hidden) || 
+                             file.Attributes.HasFlag(FileAttributes.System)))
+                        {
+                            continue;
+                        }
+
                         items.Add(new FileItem
                         {
                             FullPath = file.FullName,
